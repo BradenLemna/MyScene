@@ -22,10 +22,9 @@ MyScene gives these smaller artists an opportunity to connect with the scene by 
 ## Run
 Our project interfaces with a local MySQL database, so you'll need to set one up before running the program. The database schema can be found in `schema.sql`. Use the .env.example to create your own .env file with the MySQL credentials.
 
-```
+
 git clone https://github.com/katsu1863/Hoghacks-2026.git
 cd HogHacks-2026
-```
 - Run `./install.sh` to install necessary packages
 - Start a local PHP web server by running `php -S localhost:8000` from the home directory of HogHacks-2026
 - Navigate to `http://localhost:8000/src/frontend/main.html` on a Web browser 
