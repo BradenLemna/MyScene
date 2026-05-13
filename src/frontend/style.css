@@ -89,6 +89,13 @@ input {
     margin-right: 3em;
 }
 
+.logoContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1em;
+}
+
 #addArtistNav {
     /* margin-top: 10px; */
 }
