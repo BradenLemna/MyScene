@@ -1,3 +1,8 @@
+# MyScene
+This repository is a continuation of the 2026 HogHacks Project "MyScene". This repository will have more functionality and improved implementation on already implemented features.
+
+# Old README
+```
 # Hoghacks-2026
 This respoitory is for the team **Theta Protocol** at the University of Arkansas' Hoghacks 2026. Look around to see what we're working on!
 
@@ -26,3 +31,4 @@ cd HogHacks-2026
 - Navigate to `http://localhost:8000/src/frontend/main.html` on a Web browser 
  
 *The website relies on multiple API Calls that require API keys*
+```
