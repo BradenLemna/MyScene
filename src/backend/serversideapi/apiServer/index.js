@@ -5,8 +5,8 @@
 
 import { autoCompleteCity, getLatitude, getLongitude, getLocation } from "../apiCalls/locationIQAPICall.js";
 import { getGenre } from "../apiCalls/lastFMAPICall.js";
+import express from 'express';
 
-const express = require('express');
 const app = express();
 const port = 3000;
 
@@ -14,8 +14,10 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
+app.use(express.json());
+
 app.get('/', (req, res) => {
-    res.sendStatus('API is running!');
+    res.json('API is running!');
 });
 
 app.get('/autocomplete', async (req, res) => {
