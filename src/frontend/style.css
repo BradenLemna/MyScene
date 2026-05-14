@@ -102,13 +102,20 @@ input {
 
 /* This seperates the search button and the filter button so that they're able to be displayed correctly. */
 .searchEngineTop {
-    margin-top: -1.5em;
+    margin-top: 1.5em;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
 .searchEngineBot {
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.searchEngineRadius {
+    width: 25em;
     display: flex;
     justify-content: center;
     position: relative;

@@ -108,12 +108,15 @@ Description: This is the homepage for our Hackathon project, MyScene. MyScene's 
         </div>
     </div>
 
-    <div style="display: none;" id="searchResults">
-        <h1>Search Artists by Genre</h1>
-
-        <p id="no-results" style="display: none;"></p>
-
-        <div id="results"></div>
+    <div class="searchEngine">
+        <div class="searchEngineTop">
+            <input placeholder="Enter city here..." for="searchEngine" id="homeSearch">
+            <button id="searchButton"><img src="Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
+        </div>
+        <div class="searchEngineRadius">
+            <input placeholder="Enter radius here... (miles)" for="searchEngine" id="homeSearch">
+            <button id="searchButton"><img src="Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
+        </div>
     </div>
 
     <script type="module" src="main.js"></script>
