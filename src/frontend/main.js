@@ -1,6 +1,5 @@
 import { setUserLocation, calculateDistance, testInRange } from "../backend/locationHandling.js";
-import { autoCompleteCity, getLatitude, getLongitude, getLocation } from "../backend/apiCalls/locationIQAPICall.js";
-import { getGenre } from "../backend/apiCalls/lastFMAPICall.js";
+import { autoCompleteCity, getLatitude, getLongitude, getLocation, getGenre } from "../backend/apiCallsClientside.js";
 
 /*
 document.addEventListener("DOMContentLoaded", () => {
