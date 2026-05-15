@@ -5,7 +5,7 @@
 // Author: Braden Lemna
 //--------------------------------------------
 
-import data from "./apiKeys.json" assert { type: "json" };
+import data from "../apiKeys.json" assert { type: "json" };
 
 const apiKey = data.locationIQApiKey; // Input server side to prevent unwanted use
 

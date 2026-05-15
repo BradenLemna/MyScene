@@ -4,7 +4,7 @@
 // Author: Braden Lemna
 //--------------------------------------------
 
-import data from "./apiKeys.json" assert { type: "json" };
+import data from "../apiKeys.json" assert { type: "json" };
 
 export async function getGenre(artist) // Calls the LastFM api to get the genre of the artist
 {
