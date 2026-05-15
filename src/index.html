@@ -1,5 +1,5 @@
 <!--
-File Name: main.html
+File Name: index.html
 Initial Implementation: Shayne Thompson, @whisperingcoder (Github)
 Continued Development: Braden Lemna, @BradenLemna (Github)
 Description: This is the homepage for our Hackathon project, MyScene. MyScene's goal is to represnt and showcase those smaller local artists.
@@ -14,23 +14,23 @@ Description: This is the homepage for our Hackathon project, MyScene. MyScene's 
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""></script>
     <title>MyScene</title>
-    <link rel="icon" type="image/x-icon" href="Icons/mySceneLogo.png">
+    <link rel="icon" type="image/x-icon" href="frontend/Icons/mySceneLogo.png">
 </head>
 
 <header>
     <div class="nav">
         <button style="width: 6em;" id="addArtistButton" class="navButton">
-            <a href="addArtist.html" >Add Artist</a>
+            <a href="frontend/addArtist.html" >Add Artist</a>
         </button>
 
         <button id="loginButton" class="navButton">
-            <a href="login.html">Log In</a>
+            <a href="frontend/login.html">Log In</a>
         </button>
     </div>
 
     <div class="logoContainer">
-        <a href="main.html">
-            <img src="Icons/mySceneLogo.png" class="logo">
+        <a href="index.html">
+            <img src="frontend/Icons/mySceneLogo.png" class="logo">
         </a>
     </div>
 
@@ -40,7 +40,7 @@ Description: This is the homepage for our Hackathon project, MyScene. MyScene's 
         <!-- Top of the search bar -->
         <div class="searchEngineTop">
             <input placeholder="Enter artist here..." for="searchEngine" id="homeSearch">
-            <button id="searchButton"><img src="Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
+            <button id="searchButton"><img src="frontend/Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
         </div>
 
         <!-- Bottom of the search bar -->
@@ -60,10 +60,10 @@ Description: This is the homepage for our Hackathon project, MyScene. MyScene's 
      <div id="featuredArtists">
         <h1>Featured Artists</h1>
         <div id="row1">
-            <a href="viewArtist.html">
+            <a href="frontend/viewArtist.html">
             <div class="artistBox" id="artist1">
 
-                <img src="Artist Pics/AuntieAircraft.png" class="artistImg">
+                <img src="frontend/Artist Pics/AuntieAircraft.png" class="artistImg">
                 <h3>Auntie Aircraft</h3>
                 <p>Rock</p>
             </div>
@@ -71,14 +71,14 @@ Description: This is the homepage for our Hackathon project, MyScene. MyScene's 
             
             <div class="artistBox" id="artist2">
 
-                <img src="Artist Pics/Ratboys.png" class="artistImg">
+                <img src="frontend/Artist Pics/Ratboys.png" class="artistImg">
                 <h3>Ratboys</h3>
                 <p>Indie</p>
             </div>
 
             <div class="artistBox" id="artist3">
 
-                <img src="Artist Pics/Echo Eden and the Dreamers.png" class="artistImg">
+                <img src="frontend/Artist Pics/Echo Eden and the Dreamers.png" class="artistImg">
                 <h3>Echo Eden and the Dreamers</h3>
                 <p>Punk</p>
             </div>
@@ -87,21 +87,21 @@ Description: This is the homepage for our Hackathon project, MyScene. MyScene's 
         <div id="row2">
             <div class="artistBox" id="artist4">
 
-                <img src="Artist Pics/BigFatCow.png" class="artistImg">
+                <img src="frontend/Artist Pics/BigFatCow.png" class="artistImg">
                 <h3>Big Fat Cow</h3>
                 <p>Country</p>
             </div>
 
             <div class="artistBox" id="artist5">
 
-                <img src="Artist Pics/FrontPorch.png" class="artistImg">
+                <img src="frontend/Artist Pics/FrontPorch.png" class="artistImg">
                 <h3>Front Porch</h3>
                 <p>Country</p>
             </div>
 
             <div class="artistBox" id="artist6">
 
-                <img src="Artist Pics/Oakwood.png" class="artistImg">
+                <img src="frontend/Artist Pics/Oakwood.png" class="artistImg">
                 <h3>Oakwood</h3>
                 <p>Alt Rock</p>
             </div>
@@ -111,15 +111,15 @@ Description: This is the homepage for our Hackathon project, MyScene. MyScene's 
     <div class="searchEngine">
         <div class="searchEngineTop">
             <input placeholder="Enter city here..." for="searchEngine" id="homeSearch">
-            <button id="searchButton"><img src="Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
+            <button id="searchButton"><img src="frontend/Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
         </div>
         <div class="searchEngineRadius">
             <input placeholder="Enter radius here... (miles)" for="searchEngine" id="homeSearch">
-            <button id="searchButton"><img src="Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
+            <button id="searchButton"><img src="frontend/Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
         </div>
     </div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module" src="index.js"></script>
 
     <div id="map"></div>
 </body>
