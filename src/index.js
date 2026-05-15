@@ -51,6 +51,17 @@ async function search() {
     displayArtists(data.artists);
 }
 
+document.getElementById("radiusEnterButton").addEventListener("click", function() {
+    const radiusInput = document.getElementById("radiusSearch").value;
+    const radius = parseFloat(radiusInput); // Convert string input to a number (float)
+    if (!isNaN(radius) && radius > 0) { // Check if the input is a valid number and greater than 0
+        updateRadiusCircle(radius);
+    }
+    else {
+        alert("Please enter a valid radius in miles.");
+    }
+});
+
 let timer;
 const input = document.getElementById("citySearch");
 input.addEventListener('keyup', function() {
