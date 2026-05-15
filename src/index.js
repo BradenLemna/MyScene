@@ -51,6 +51,21 @@ async function search() {
     displayArtists(data.artists);
 }
 
+let timer;
+const input = document.getElementById("citySearch");
+input.addEventListener('keyup', function() {
+    clearTimeout(timer);
+    const query = this.value;
+    timer = setTimeout(() => {
+        if (query.length > 2) {
+            autoCompleteCity(query).then(suggestions => {
+                console.log(suggestions);
+                // Here you can update your UI with the suggestions
+            });
+        }
+    }, 500); // Delay of 500ms after the user stops typing
+});
+
 function displayArtists(artists) {
     document.getElementById("searchResults").style.display = "block";
     document.getElementById("featuredArtists").style.display = "none";

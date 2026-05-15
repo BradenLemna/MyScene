@@ -169,6 +169,11 @@ input {
     height: 3em;
 }
 
+#citySearch {
+    width: 60em;
+    height: 3em;
+}
+
 #featuredArtists {
     margin-left: auto;
     margin-right: auto;
