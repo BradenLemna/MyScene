@@ -5,7 +5,9 @@
 // Author: Braden Lemna
 //--------------------------------------------
 
-const apiKey = 'null' // Input server side to prevent unwanted use
+import data from "./apiKeys.json" assert { type: "json" };
+
+const apiKey = data.locationIQApiKey; // Input server side to prevent unwanted use
 
 export async function autoCompleteCity(input) // Calls LocationIQ api to get the autocomplete suggestions for the given input
 {
@@ -17,7 +19,7 @@ export async function autoCompleteCity(input) // Calls LocationIQ api to get the
     const suggestions = data.map(item => item.display_name)
     console.log('Autocomplete suggestions for', input, ':', suggestions)
 
-    return suggestions[0] // Return the first suggestion
+    return suggestions.slice(0, 4) // Return the first 4 suggestions
 }
 
 export async function getLongitude(city) // Calls LocationIQ api to get the longitude of the given city
