@@ -240,6 +240,18 @@ input {
     width: 9em;
 }
 
+.add-artist-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    width: fit-content;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
 footer {
     margin: 1em;
     margin-top: 7em;
@@ -478,7 +490,6 @@ footer {
     line-height: 1em;
 
 }
-
 
 #artistButtons button {
     width: 9em;
