@@ -5,9 +5,9 @@
 // Author: Braden Lemna
 //--------------------------------------------
 
-import data from "../apiKeys.json" assert { type: "json" };
+import key from "../apiKeys.json" assert { type: "json" };
 
-const apiKey = data.locationIQApiKey; // Input server side to prevent unwanted use
+const apiKey = key.locationIQApiKey; // Input server side to prevent unwanted use
 
 export async function autoCompleteCity(input) // Calls LocationIQ api to get the autocomplete suggestions for the given input
 {
