@@ -11,7 +11,7 @@ const apiKey = key.locationIQApiKey; // Input server side to prevent unwanted us
 
 export async function autoCompleteCity(input) // Calls LocationIQ api to get the autocomplete suggestions for the given input
 {
-    const url = 'https://us1.locationiq.com/v1/autocomplete.php?key='+ apiKey + '&format=json&q=' + encodeURIComponent(input) + '&limit=3&dedupe=1&'
+    const url = 'https://us1.locationiq.com/v1/autocomplete.php?key='+ apiKey + '&format=json&q=' + encodeURIComponent(input) + '&limit=4&dedupe=1&'
 
     const response = await fetch(url)
     const data = await response.json()
