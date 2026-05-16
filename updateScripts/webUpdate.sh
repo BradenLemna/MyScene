@@ -28,5 +28,4 @@ elif [ "$input" == "Y" ] || [ "$input" == "y" ]; then
     cp -r ~/myscene-git/schema.sql ~/myscene-db
 fi
 
-cp -r ~/myscene-git/src/backend/db-api/. ~/myscene-db/db-api
 cp ~/myscene-git/updateScripts/webUpdate.sh ~/webUpdate.sh
