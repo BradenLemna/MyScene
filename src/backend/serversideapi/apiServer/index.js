@@ -62,3 +62,64 @@ app.get('/getGenre', async (req, res) => {
     const genre = await getGenre(artist);
     res.json({ genre });
 });
+
+app.post('/add_artist', async (req, res) => {
+    const { artist_name, location_city, location_region, music_genre, insta_handle } = req.body;
+    fetch("/../db-api/add_artist.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            artist_name: artist_name,
+            // longitude: getLongitude(city),
+            // latitude: getLatitude(city),
+            location_city: location_city,
+            location_region: location_region,
+            music_genre: music_genre,
+            // image_src: image,
+            insta_handle: insta_handle,
+
+        })
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+                res.json({ success: true, message: "Artist was successfully added to the database." });
+        } else {
+                res.json({ success: false, message: "Artist name, city, state, and music genre must be filled in." });
+        }
+    })
+});
+
+app.post('/search_genre', async (req, res) => {
+    const { music_genre } = req.body;
+    fetch("/../db-api/search_genre.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            music_genre: music_genre
+        })
+    }).then(response => response.json())
+    .then(data => {
+        res.json({ artists: data.artists });
+    })
+});
+
+app.post('/verify_user', async (req, res) => {
+    const { username, password } = req.body;
+    fetch("/../db-api/verify_user.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password
+        })
+    }).then(response => response.json())
+    .then(data => {
+        res.json({ verified: data.verified });
+    })
+});
