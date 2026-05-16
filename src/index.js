@@ -30,6 +30,10 @@ async function search() {
     });*/
     
     let input = document.getElementById("homeSearch").value;
+    if (input.trim() === "") {
+        alert("Please enter an artist name.");
+        return;
+    }
     let genre = await getGenre(input);
     alert(genre);
     const res = await fetch("../backend/db-api/search_genre.php",{

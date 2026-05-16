@@ -53,12 +53,14 @@ body {
 }
 
 button {
+    min-width: fit-content;
+    min-height: fit-content;
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: white;
     border: 0px;
-    background-color: #77CBB9;
+    background-color: #77cbb9;
     border-radius: 3em;
 }
 
@@ -115,7 +117,8 @@ input {
 }
 
 .searchEngineRadius {
-    width: 25em;
+    margin-left: -8em; /* This is a bit of a hack to get the radius search to be in the correct position. */
+    width: 30em;
     display: flex;
     justify-content: center;
     position: relative;
@@ -140,8 +143,22 @@ input {
 }
 
 #searchButton {
-    width: 3em;
-    height: 3em;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    border: 0px;
+    background-color: #77cbb9;
+    margin-left: 3px;
+}
+
+#radiusEnterButton {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    border: 0px;
+    background-color: #77cbb9;
     margin-left: 3px;
 }
 
@@ -258,163 +275,171 @@ footer {
     margin-bottom: 2em;
 }
 
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80vh;
-            padding: 20px;
-        }
-        
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .login-box h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-        
-        #login {
-            width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        
-        #login:hover {
-            background-color: #45a049;
-        }
+/* ------------------------------------------
+    Login Page CSS
+------------------------------------------- */
 
-        /* Here is where i pasted */
-        .login-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80vh;
-            padding: 20px;
-        }
-        
-        .login-box {
-            background: white;
-            padding-bottom: 40px;
-            margin-top: -14em;
-            padding-left: 40px;
-            padding-right: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .login-box h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #4CAF50;
-        }
-        
-        #login {
-            width: 100%;
-            padding: 12px;
-            background-color: #75B8C8;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        
-        #login:hover {
-            background-color: #51b1c9;
-        }
-        
-        #bandSubmission {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5em;
-        }
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 20px;
+}
 
-        #bandSubmission input {
-            width: 25em;
-            height: 2.5em;
-            border-radius: 10px;
-            
-        }
+.login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
 
-        .logo#smallLogo {
-            width: 7em;
-            height: 5.65em;
-            margin: 0;
-            background-color: transparent;
-            padding-left: 30px;
-        }
+.login-box h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+#login {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+#login:hover {
+    background-color: #45a049;
+}
+
+/* Here is where i pasted */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 20px;
+}
+
+.login-box {
+    background: white;
+    padding-bottom: 40px;
+    margin-top: -14em;
+    padding-left: 40px;
+    padding-right: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-box h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+#login {
+    width: 100%;
+    padding: 12px;
+    background-color: #75B8C8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+#login:hover {
+    background-color: #51b1c9;
+}
+
+/* ------------------------------------------
+    Add Artist Page CSS
+------------------------------------------- */
+
+#bandSubmission {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+}
+
+#bandSubmission input {
+    width: 25em;
+    height: 2.5em;
+    border-radius: 10px;
+    
+}
+
+.logo#smallLogo {
+    width: 7em;
+    height: 5.65em;
+    margin: 0;
+    background-color: transparent;
+    padding-left: 30px;
+}
 
 #artistHeader {
     width: 65em;
