@@ -16,7 +16,7 @@ fi
 
 echo "Updating Website"
 
-cp -r ~/myscene-git/. ~/var/www/html
+cp -r ~/myscene-git/. /var/www/html
 
 if [ "$1" == "FullUpdate" ]; then
     echo "Updating sql File"
