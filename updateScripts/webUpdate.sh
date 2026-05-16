@@ -20,12 +20,12 @@ cp -r ~/myscene-git/. /var/www/html
 
 if [ "$1" == "FullUpdate" ]; then
     echo "Updating sql File"
-    cp -r ~/myscene-git/schema.sql ~/myscene-db
+    cp -r ~/myscene-git/schema.sql ~/myscene-db/schema.sql
 elif [ "$input" == "Y" ] || [ "$input" == "y" ]; then
     echo "Running Full Database Update (Removing All Database Files)"
     rm -rf ~/myscene-db
     echo "Updating sql File"
-    cp -r ~/myscene-git/schema.sql ~/myscene-db
+    cp -r ~/myscene-git/schema.sql ~/myscene-db/schema.sql
 fi
 
 cp ~/myscene-git/updateScripts/webUpdate.sh ~/webUpdate.sh
