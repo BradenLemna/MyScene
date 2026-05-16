@@ -12,5 +12,6 @@ git clone https://github.com/BradenLemna/MyScene.git ~/myscene-git
 
 cp -r ~/myscene-git/src/backend/serversideapi/apiServer/* ~/myscene-api/apiServer/
 cp -r ~/myscene-git/src/backend/serversideapi/apiCalls/* ~/myscene-api/apiCalls/
+cp ~/myscene-git/updateScripts/apiUpdate.sh ~/apiUpdate.sh
 
 pm2 reload index
