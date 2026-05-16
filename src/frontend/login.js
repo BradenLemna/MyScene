@@ -3,7 +3,7 @@ document.getElementById("login").addEventListener("click", function() {
     var username = document.getElementById("username").value;
     var password = document.getElementById("password").value;
 
-    fetch("../backend/db-api/verify_user.php", {
+    fetch("api.myscene.live/verify_user", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
