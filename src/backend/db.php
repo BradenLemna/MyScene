@@ -1,8 +1,8 @@
 <?php
-require __DIR__ . "/../../vendor/autoload.php";   // Load Composer packages
+require __DIR__ . "/vendor/autoload.php";   // Load Composer packages
 
 // Load the .env file from the project root
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . "/../..");
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 // Validate that required variables are present
