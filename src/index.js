@@ -36,7 +36,7 @@ async function search() {
     }
     let genre = await getGenre(input);
     alert(genre);
-    const res = await fetch("api.myscene.live/search_genre",{
+    const res = await fetch("https://api.myscene.live/search_genre",{
         method: "POST",
         headers: {
             "Content-Type": "application/json",

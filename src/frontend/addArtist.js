@@ -7,7 +7,7 @@ document.getElementById("addBandButton").addEventListener("click", function() {
     // let image = document.getElementById("bandImage").value;
     let socials = document.getElementById("instagramHandle").value;
 
-    fetch("api.myscene.live/add_artist", {
+    fetch("https://api.myscene.live/add_artist", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
