@@ -5,6 +5,7 @@
 echo "Running update script"
 
 rm -rf ~/myscene-git
+mkdir ~/myscene-git
 git clone https://github.com/BradenLemna/MyScene.git ~/myscene-git
 
 if [ "$1" == "FullUpdate" ]; then
@@ -29,3 +30,4 @@ elif [ "$input" == "Y" ] || [ "$input" == "y" ]; then
 fi
 
 cp ~/myscene-git/updateScripts/webUpdate.sh ~/webUpdate.sh
+chmod +x ~/webUpdate.sh
