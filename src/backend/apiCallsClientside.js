@@ -38,3 +38,38 @@ export async function getGenre(artist) // Calls the server to get the genre of t
     const data = await response.json()
     return data.genre
 }
+
+export async function getFeaturedArtists() // Calls the server to get the featured artists
+{
+    const response = await fetch('https://api.myscene.live/getFeaturedArtists')
+    const data = await response.json()
+    return data.artists
+}
+
+export async function getArtistInfo(artist) // Calls the server to get the artist info of the given artist
+{
+    const response = await fetch('https://api.myscene.live/getArtistInfo' + '?artist=' + encodeURIComponent(artist))
+    const data = await response.json()
+    return data.artistInfo
+}
+
+export async function getArtistAmount() // Calls the server to get the amount of artists in the database
+{
+    const response = await fetch('https://api.myscene.live/getArtistAmount')
+    const data = await response.json()
+    return data.amount
+}
+
+export async function getArtistEvents(artist) // Calls the server to get the events of the given artist
+{
+    const response = await fetch('https://api.myscene.live/getArtistEvents' + '?artist=' + encodeURIComponent(artist))
+    const data = await response.json()
+    return data.events
+}
+
+export async function getGenreList() // Calls the server to get the list of genres
+{
+    const response = await fetch('https://api.myscene.live/getGenreList')
+    const data = await response.json()
+    return data.genres
+}
