@@ -1,11 +1,20 @@
 document.getElementById("addBandButton").addEventListener("click", function() {
-    //alert("Button clicked!");
-    let name = document.getElementById("bandName").value;
-    let city = document.getElementById("bandCity").value;
-    let state = document.getElementById("bandState").value;
-    let genre = document.getElementById("bandGenre").value;
+    let name = document.getElementById("bandName").value.trim();
+    let city = document.getElementById("bandCity").value.trim();
+    let state = document.getElementById("bandState").value.trim();
+    let genre = document.getElementById("bandGenre").value.trim();
     // let image = document.getElementById("bandImage").value;
-    let socials = document.getElementById("instagramHandle").value;
+    let socials = document.getElementById("instagramHandle").value.trim();
+
+    if (!name || !city || !state || !genre) {
+        alert("Artist name, city, state, and music genre must be filled in.");
+        return;
+    }
+
+    const button = document.getElementById("addBandButton");
+    button.disabled = true;
+    const originalLabel = button.textContent;
+    button.textContent = "Adding...";
 
     fetch("https://api.myscene.live/add_artist", {
         method: "POST",
@@ -26,9 +35,18 @@ document.getElementById("addBandButton").addEventListener("click", function() {
     }).then(response => response.json())
       .then(data => {
           if (data.success) {
-                alert("Artist was successfully added to the database.")
+                alert("Artist was successfully added to the database.");
+                document.getElementById("bandSubmission").querySelectorAll("input").forEach(i => i.value = "");
           } else {
                 alert("Artist name, city, state, and music genre must be filled in.");
           }
+      })
+      .catch(err => {
+          console.error("Failed to add artist:", err);
+          alert("Something went wrong submitting your band. Please try again.");
+      })
+      .finally(() => {
+          button.disabled = false;
+          button.textContent = originalLabel;
       });
 });

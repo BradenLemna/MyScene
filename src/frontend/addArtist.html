@@ -4,65 +4,97 @@ Initial Implementation: Shayne Thompson, @whisperingcoder (Github)
 Continued Development: Braden Lemna, @BradenLemna (Github)
 Description: This is the page where artists can add their band.
 -->
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="../style.css">
-    <title>My Scene - Add Artist</title>
-    <link rel="icon" type="image/x-icon" href="Icons/mySceneLogo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.css">
+  <title>MyScene - Add Artist</title>
+  <link rel="icon" type="image/x-icon" href="Icons/mySceneLogo.png">
 </head>
 
-<header>
-    <div class="nav" id="addArtistNav">
-        <button style="width: 6em;" id="goBackButton" class="navButton">
-            <a href="../index.html" >Go Back</a>
-        </button>
-
-        <button id="loginButton" class="navButton">
-            <a href="login.html">Log In</a>
-        </button>
-    </div>
-
-    <a href="../index.html">
-        <img src="Icons/mySceneLogo.png" class="logo" id="smallLogo">
-    </a>
-</header>
-
 <body>
-    <div class="add-artist-container">
-        <h1>Ready to grow your community? Add your Band!</h1>
 
-        <!-- This is where the user can add their band! -->
-        <div id="bandSubmission">
+  <header>
+    <div class="nav" id="addArtistNav">
+      <button style="width: 6em;" id="goBackButton" class="btn cyan">
+        <a href="../index.html">Go Back</a>
+      </button>
 
-            <!-- Name of Band  -->
-            <label>Name of Band: </label>
-            <input for="bandName" id="bandName">
+      <a href="../index.html" aria-label="MyScene home">
+        <img src="Icons/mySceneLogo.png" class="logo" id="smallLogo" alt=""
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
+      </a>
 
-            <!-- Instagram Handle of Band  -->
-            <label>Instagram Handle: </label>
-            <input for="instagramHandle" id="instagramHandle">
-
-            <!-- Band Genre  -->
-            <label>Genre of Band: </label>
-            <input for="bandGenre" id="bandGenre">
-
-            <!-- City Location of Band  -->
-            <label>City Location: </label>
-            <input for="bandCity" id="bandCity">
-
-            <!-- State Location of Band  -->
-            <label>State Location: </label>
-            <input for="bandState" id="bandState">
-            
-            <!-- Submit Button -->
-            <button id="addBandButton">Add!</button>
-        </div>
+      <button id="loginButton" class="btn pink">
+        <a href="login.html">Log In</a>
+      </button>
     </div>
 
+  </header>
+
+  <main>
+    <div class="add-artist-container">
+      <h1>Ready to grow your community? Add your Band!</h1>
+
+      <!-- This is where the user can add their band! -->
+      <div id="bandSubmission" class="formPanel">
+
+        <div class="form-group">
+          <label for="bandName">Name of Band</label>
+          <input type="text" id="bandName" placeholder="e.g. Auntie Aircraft">
+        </div>
+
+        <div class="form-group">
+          <label for="instagramHandle">Instagram Handle</label>
+          <input type="text" id="instagramHandle" placeholder="@yourband">
+        </div>
+
+        <div class="form-group">
+          <label for="bandGenre">Genre of Band</label>
+          <input type="text" id="bandGenre" placeholder="e.g. Rock, Indie, Punk...">
+        </div>
+
+        <div class="form-group">
+          <label for="bandCity">City Location</label>
+          <input type="text" id="bandCity" placeholder="e.g. Fayetteville">
+        </div>
+
+        <div class="form-group">
+          <label for="bandState">State Location</label>
+          <input type="text" id="bandState" placeholder="e.g. Arkansas">
+        </div>
+
+        <!-- Submit Button -->
+        <button id="addBandButton" class="btn pink" type="button">Add!</button>
+        <p class="formHint">Name, city, state, and genre are required.</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="addArtist.js"></script>
+
+  <footer>
+    <div class="footerDivider"></div>
+    <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+  </footer>
+
+  <script>
+    // Ambient starfield to match the homepage.
+    (function spawnStars() {
+      const field = document.querySelector(".starfield");
+      if (!field) return;
+      const count = window.innerWidth < 600 ? 26 : 46;
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement("span");
+        s.style.top = Math.random() * 100 + "%";
+        s.style.left = Math.random() * 100 + "%";
+        s.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
+        s.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
+        field.appendChild(s);
+      }
+    })();
+  </script>
 </body>
-
-<script src="addArtist.js"></script>
-
-<footer>
-    <p>Created by Theta Protocol, Hoghacks Hackathon 2026 Team.</p>
-</footer>
+</html>

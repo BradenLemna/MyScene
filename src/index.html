@@ -1,129 +1,246 @@
+<!DOCTYPE html>
 <!--
 File Name: index.html
 Initial Implementation: Shayne Thompson, @whisperingcoder (Github)
 Continued Development: Braden Lemna, @BradenLemna (Github)
-Description: This is the homepage for our Hackathon project, MyScene. MyScene's goal is to represnt and showcase those smaller local artists.
+Description: Homepage for MyScene — showcasing smaller local artists.
+Y2K chrome/holographic redesign wired to the real backend search, geolocation,
+and Leaflet map in index.js.
 -->
-
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
-    <title>MyScene</title>
-    <link rel="icon" type="image/x-icon" href="frontend/Icons/mySceneLogo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyScene — Find Local Bands</title>
+  <link rel="icon" type="image/x-icon" href="frontend/Icons/mySceneLogo.png">
+
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
 </head>
 
-<header>
-    <div class="nav">
-        <button style="width: 6em;" id="addArtistButton" class="navButton">
-            <a href="frontend/addArtist.html" >Add Artist</a>
-        </button>
-
-        <button id="loginButton" class="navButton">
-            <a href="frontend/login.html">Log In</a>
-        </button>
-    </div>
-
-    <div class="logoContainer">
-        <a href="index.html">
-            <img src="frontend/Icons/mySceneLogo.png" class="logo">
-        </a>
-    </div>
-
-    <!-- This is the search engine. -->
-    <div class="searchEngine"> 
-
-        <!-- Top of the search bar -->
-        <div class="searchEngineTop">
-            <input placeholder="Enter artist here..." for="searchEngine" id="homeSearch">
-            <button id="searchButton"><img src="frontend/Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
-        </div>
-
-        <!-- Bottom of the search bar -->
-        <div class="searchEngineBot">
-            <button id="filterButton">Filter ></button>
-            <!-- Filter options are hidden so they can later be revealed by JS. -->
-            <div id="filterOptions" style="display: none;"></div>
-        </div>
-        
-    </div>
-    
-
-</header>
-
 <body>
-    <!-- Featured Artists Section (would be adaptable w/ real implementation) -->
-     <div id="featuredArtists">
-        <h1>Featured Artists</h1>
-        <div id="row1">
-            <a href="frontend/viewArtist.html">
-            <div class="artistBox" id="artist1">
 
-                <img src="frontend/Artist Pics/AuntieAircraft.png" class="artistImg">
-                <h3>Auntie Aircraft</h3>
-                <p>Rock</p>
-            </div>
-            </a>
-            
-            <div class="artistBox" id="artist2">
+  <header>
+    <nav class="nav">
+      <div class="navLeft">
+        <button class="btn cyan" id="addArtistButton">
+          <a href="frontend/addArtist.html">+ Add Artist</a>
+        </button>
+      </div>
 
-                <img src="frontend/Artist Pics/Ratboys.png" class="artistImg">
-                <h3>Ratboys</h3>
-                <p>Indie</p>
-            </div>
+      <div class="logoContainer">
+        <a href="index.html" aria-label="MyScene home">
+          <img src="frontend/Icons/mySceneLogo.png" class="logo" alt=""
+               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
+        </a>
+      </div>
 
-            <div class="artistBox" id="artist3">
+      <div class="navRight">
+        <button class="btn pink" id="loginButton">
+          <a href="frontend/login.html">Log In</a>
+        </button>
+      </div>
+    </nav>
+  </header>
 
-                <img src="frontend/Artist Pics/Echo Eden and the Dreamers.png" class="artistImg">
-                <h3>Echo Eden and the Dreamers</h3>
-                <p>Punk</p>
-            </div>
-        </div>
+  <main>
+    <!-- Hero + primary artist search -->
+    <section class="hero">
+      <h1 class="heroLogo">
+        <img src="frontend/Icons/mySceneLogo.png" class="heroLogo" alt="MyScene"
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
+      </h1>
 
-        <div id="row2">
-            <div class="artistBox" id="artist4">
-
-                <img src="frontend/Artist Pics/BigFatCow.png" class="artistImg">
-                <h3>Big Fat Cow</h3>
-                <p>Country</p>
-            </div>
-
-            <div class="artistBox" id="artist5">
-
-                <img src="frontend/Artist Pics/FrontPorch.png" class="artistImg">
-                <h3>Front Porch</h3>
-                <p>Country</p>
-            </div>
-
-            <div class="artistBox" id="artist6">
-
-                <img src="frontend/Artist Pics/Oakwood.png" class="artistImg">
-                <h3>Oakwood</h3>
-                <p>Alt Rock</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="searchEngine">
+      <div class="searchEngine">
         <div class="searchEngineTop">
-            <input placeholder="Enter city here..." for="searchEngine" id="citySearch">
+          <input type="text" placeholder="Enter artist here..." id="homeSearch" aria-label="Search artists by name">
+          <button id="searchButton" aria-label="Search">
+            <img src="frontend/Icons/search-circle-svgrepo-com.svg" id="searchButtonImg" alt="">
+          </button>
         </div>
-        <div class="searchEngineRadius">
-            <input placeholder="Enter radius here... (miles)" for="searchEngine" id="radiusSearch">
-            <button id="radiusEnterButton"><img src="frontend/Icons/search-circle-svgrepo-com.svg" id="searchButtonImg"></button>
+        <div class="searchEngineBot">
+          <button id="filterButton" type="button">Filter &gt;</button>
         </div>
+        <div id="filterOptions">
+          <div class="filterCategory" id="genre">
+            Genre
+            <div class="filterSubmenu" id="genrefilter">
+              <label><input type="checkbox" value="Rock"> Rock</label>
+              <label><input type="checkbox" value="Indie"> Indie</label>
+              <label><input type="checkbox" value="Punk"> Punk</label>
+              <label><input type="checkbox" value="Country"> Country</label>
+              <label><input type="checkbox" value="Alt Rock"> Alt Rock</label>
+            </div>
+          </div>
+          <div class="filterCategory" id="dates">
+            Dates
+            <div class="filterSubmenu" id="datesfilter">
+              <label><input type="checkbox" value="thisWeek"> This week</label>
+              <label><input type="checkbox" value="thisMonth"> This month</label>
+              <label><input type="checkbox" value="anytime"> Anytime</label>
+            </div>
+          </div>
+          <div class="filterCategory" id="size">
+            Venue size
+            <div class="filterSubmenu" id="sizefilter">
+              <label><input type="checkbox" value="small"> Small</label>
+              <label><input type="checkbox" value="medium"> Medium</label>
+              <label><input type="checkbox" value="large"> Large</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="heroStats">
+        <div class="heroStat"><b id="statArtists">6</b><span>Local artists</span></div>
+      </div>
+    </section>
+
+    <!-- Featured Artists -->
+    <section id="featuredArtists">
+      <div class="sectionHead">
+        <h2>Featured Artists</h2>
+      </div>
+      <div class="artistGrid" id="row1">
+        <a href="frontend/viewArtist.html" class="artistBox" id="artist1">
+          <div class="artistCard">
+            <div class="artistImgWrap">
+              <span class="newBadge">Featured</span>
+              <img src="frontend/Artist Pics/AuntieAircraft.png" class="artistImg" alt="Auntie Aircraft"
+                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
+            </div>
+            <div class="artistCardBody">
+              <h3>Auntie Aircraft</h3>
+              <div class="artistMeta"><span>Rock</span></div>
+            </div>
+          </div>
+        </a>
+
+        <div class="artistBox" id="artist2">
+          <div class="artistCard">
+            <div class="artistImgWrap">
+              <img src="frontend/Artist Pics/Ratboys.png" class="artistImg" alt="Ratboys"
+                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
+            </div>
+            <div class="artistCardBody">
+              <h3>Ratboys</h3>
+              <div class="artistMeta"><span>Indie</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="artistBox" id="artist3">
+          <div class="artistCard">
+            <div class="artistImgWrap">
+              <img src="frontend/Artist Pics/Echo Eden and the Dreamers.png" class="artistImg" alt="Echo Eden and the Dreamers"
+                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
+            </div>
+            <div class="artistCardBody">
+              <h3>Echo Eden and the Dreamers</h3>
+              <div class="artistMeta"><span>Punk</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="artistGrid" id="row2" style="margin-top:1.4rem;">
+        <div class="artistBox" id="artist4">
+          <div class="artistCard">
+            <div class="artistImgWrap">
+              <img src="frontend/Artist Pics/BigFatCow.png" class="artistImg" alt="Big Fat Cow"
+                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
+            </div>
+            <div class="artistCardBody">
+              <h3>Big Fat Cow</h3>
+              <div class="artistMeta"><span>Country</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="artistBox" id="artist5">
+          <div class="artistCard">
+            <div class="artistImgWrap">
+              <img src="frontend/Artist Pics/FrontPorch.png" class="artistImg" alt="Front Porch"
+                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
+            </div>
+            <div class="artistCardBody">
+              <h3>Front Porch</h3>
+              <div class="artistMeta"><span>Country</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="artistBox" id="artist6">
+          <div class="artistCard">
+            <div class="artistImgWrap">
+              <img src="frontend/Artist Pics/Oakwood.png" class="artistImg" alt="Oakwood"
+                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
+            </div>
+            <div class="artistCardBody">
+              <h3>Oakwood</h3>
+              <div class="artistMeta"><span>Alt Rock</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search results (shown in place of Featured Artists + map when a search runs) -->
+    <section id="searchResults" style="display:none;">
+      <div class="sectionHead">
+        <h2>Search Results</h2>
+        <p id="resultsCount"></p>
+      </div>
+      <div class="artistGrid" id="results"></div>
+    </section>
+
+    <!-- Location search + map -->
+    <section id="locateSection">
+      <div class="sectionHead">
+        <h2>Browse By Location</h2>
+        <p>Set a city and radius</p>
+      </div>
+
+      <div class="locateShell">
+        <div class="searchEngine">
+          <div class="searchEngineTop">
+            <input type="text" placeholder="Enter city here..." id="citySearch" aria-label="City">
+          </div>
+          <div class="searchEngineRadius">
+            <input type="text" placeholder="Radius in miles..." id="radiusSearch" aria-label="Radius in miles">
+            <button id="radiusEnterButton" aria-label="Search by location">
+              <img src="frontend/Icons/search-circle-svgrepo-com.svg" id="searchButtonImg" alt="">
+            </button>
+          </div>
+        </div>
+
+        <div id="map" role="application" aria-label="Map of nearby artists"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Quick-view modal -->
+  <div class="modalOverlay" id="modalOverlay">
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modalClose" id="modalClose" aria-label="Close">&times;</button>
+      <h3 id="modalTitle">Artist name</h3>
+      <div class="modalTags" id="modalTags"></div>
+      <p id="modalBio"></p>
+      <button class="chromebtn pink">View Full Profile</button>
     </div>
+  </div>
 
-    <script type="module" src="index.js"></script>
+  <footer>
+    <div class="footerDivider"></div>
+    <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+  </footer>
 
-    <div id="map"></div>
+  <script type="module" src="index.js"></script>
 </body>
-
-
-<footer>
-   <p>Created by Theta Protocol, Hoghacks Hackathon 2026 Team.</p>
-</footer>
+</html>

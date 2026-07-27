@@ -1,538 +1,748 @@
-/* 
-File Name: style.css
-Author: Shayne Thompson, @whisperingcoder (Github)
-Description: This file will connect to all html files to create a universal style across the website.  
+/*
+  File Name: style.css
+  MyScene — Y2K redesign
+  Tokens:
+    bg:      #0d0221 -> #1a0b3d -> #2d0a5e (deep violet void gradient)
+    chrome:  #e8e9f3 / #a8adc7 / #6b6f8f (brushed metal ramp)
+    pink:    #ff2fb0   cyan: #00e5ff   violet: #b537f2   gold: #ffe14d
+  Type:
+    display -> 'Righteous' (headlines)
+    body    -> 'Space Grotesk'
+    utility -> 'Space Mono' (tags, coordinates)
 */
 
-@import url('https://fonts.googleapis.com/css2?family=Concert+One&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Concert+One&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Righteous&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap');
 
-header {
-    margin-top: 3em;
+:root{
+  --bg-0:#0d0221;
+  --bg-1:#1a0b3d;
+  --bg-2:#2d0a5e;
+  --bg-3:#00000040;
+  --chrome-1:#f4f5fb;
+  --chrome-2:#c3c7de;
+  --chrome-3:#83879f;
+  --chrome-4:#4d4f66;
+  --pink:#ff2fb0;
+  --cyan:#00e5ff;
+  --violet:#b537f2;
+  --gold:#ffe14d;
+  --line: rgba(255,255,255,0.14);
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --font-display:'Righteous', system-ui, sans-serif;
+  --font-body:'Space Grotesk', system-ui, sans-serif;
+  --font-mono:'Space Mono', ui-monospace, monospace;
 }
 
-h1, h2, h3, p, label {
-    color: #CDD3D5;
-    
+*{ box-sizing:border-box; }
+
+html{ scroll-behavior:smooth; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:var(--font-body);
+  color:var(--chrome-1);
+  background:var(--bg-2);
+  overflow-x:hidden;
 }
 
-label {
-    font-size: large;
-    font-weight: bold;
+a{ color:inherit; text-decoration:none; }
+
+::selection{ background:var(--pink); color:#fff; }
+
+:focus-visible{
+  outline:2px solid var(--cyan);
+  outline-offset:3px;
+  border-radius:6px;
 }
 
-#addBandButton {
-    width: 4em;
-    height: 2em;
+/* ---------- buttons ---------- */
+.btn{
+  position:relative;
+  font-family:var(--font-mono);
+  font-weight:700;
+  font-size:.82rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:#1a0b3d;
+  border:none;
+  cursor:pointer;
+  padding:.7em 1.4em;
+  border-radius:var(--radius-md);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.btn:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+.btn:active{ transform:translateY(1px); }
+.btn.pink{
+  color:#3a0026;
+  background:var(--pink);
+}
+.btn.cyan{
+  color:#003842;
+  background:var(--cyan);
 }
 
-input:focus {
-    outline: none;
+/* ---------- header ---------- */
+header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:rgba(13,2,33,.72);
+  backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--line);
+}
+
+.nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  max-width:1200px;
+  margin:0 auto;
+  padding:.9rem 1.5rem;
+}
+
+.navLeft, .navRight{
+  display:flex;
+  gap:.7rem;
+  align-items:center;
+  flex:1;
+}
+.navRight{ justify-content:flex-end; }
+
+.logoContainer{ display:flex; justify-content:center; }
+.logo{
+  height:44px;
+}
+.logoWordmark{
+  font-family:var(--font-display);
+  font-size:1.6rem;
+  letter-spacing:.03em;
+  background:linear-gradient(180deg,#ffffff 0%, var(--chrome-2) 45%, var(--chrome-4) 52%, #ffffff 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 22px rgba(181,55,242,.55);
+}
+
+/* ---------- search pill (shared) ---------- */
+.searchEngine{
+  position:relative;
+  z-index:1;
+  max-width:760px;
+  margin:0 auto;
+  padding:1.1rem;
+  border-radius:var(--radius-lg);
+  background:var(--bg-3);
+  border:1px solid var(--line);
+}
+
+.searchEngineTop{
+  display:flex;
+  gap:.6rem;
+  align-items:center;
+}
+
+input[type="text"], .searchEngineTop input, .searchEngineRadius input{
+  flex:1;
+  font-family:var(--font-body);
+  font-size:1rem;
+  color:#fff;
+  background:var(--bg-3);
+  border:1px solid var(--line);
+  border-radius:var(--radius-md);
+  padding:.75em 1.2em;
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+input::placeholder{ color:var(--chrome-3); }
+input:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(0,229,255,.2);
+}
+
+#searchButton, #radiusEnterButton{
+  width:46px; height:46px;
+  border-radius:50%;
+  border:none;
+  display:grid; place-items:center;
+  cursor:pointer;
+  background:var(--chrome-3);
+}
+#searchButtonImg{ width:22px; height:22px; }
+
+.searchEngineBot{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:.6rem;
+}
+#filterButton{
+  background:none;
+  border:none;
+  color:var(--cyan);
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+
+#filterOptions{
+  display:none;
+  flex-wrap:wrap;
+  gap:1.4rem;
+  margin-top:.8rem;
+  padding-top:.8rem;
+  border-top:1px dashed var(--line);
+}
+.filterCategory{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--chrome-1);
+  position:relative;
+  cursor:default;
+}
+.filterSubmenu{
+  display:none;
+  position:absolute;
+  top:100%;
+  left:0;
+  margin-top:.5rem;
+  padding:.7rem .9rem;
+  min-width:150px;
+  background:var(--bg-1);
+  border:1px solid var(--line);
+  border-radius:var(--radius-md);
+  box-shadow:0 14px 30px rgba(0,0,0,.5);
+  z-index:5;
+}
+.filterSubmenu label{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  font-family:var(--font-body);
+  text-transform:none;
+  letter-spacing:0;
+  font-size:.85rem;
+  color:var(--chrome-2);
+  padding:.3em 0;
+  cursor:pointer;
+}
+.filterSubmenu input[type="checkbox"]{
+  accent-color:var(--pink);
+  width:14px; height:14px;
+}
+
+/* city autocomplete dropdown */
+.citySuggestions{
+  display:none;
+  margin-top:.4rem;
+  border:1px solid var(--line);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  background:var(--bg-1);
+}
+.citySuggestion{
+  display:block;
+  width:100%;
+  text-align:left;
+  padding:.6em 1em;
+  background:none;
+  border:none;
+  color:var(--chrome-1);
+  font-family:var(--font-body);
+  cursor:pointer;
+}
+.citySuggestion:hover{ background:rgba(255,255,255,.06); }
+
+/* search button loading state */
+#searchButton.isLoading{
+  opacity:.6;
+  cursor:progress;
+  animation:pulse 1s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{ transform:scale(1); }
+  50%{ transform:scale(.92); }
+}
+.genreChip{
+  font-family:var(--font-mono);
+  font-size:.75rem;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  padding:.42em 1em;
+  border-radius:var(--radius-md);
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.04);
+  color:var(--chrome-1);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.genreChip:hover{ border-color:var(--cyan); }
+.genreChip.active{
+  background:linear-gradient(90deg, var(--pink), var(--violet));
+  border-color:transparent;
+  color:#fff;
+  box-shadow:0 0 14px rgba(255,47,176,.55);
+}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative;
+  z-index:1;
+  text-align:center;
+  padding:1.5rem 1.5rem 3rem;
+}
+.heroLogo{
+  height:15rem;
+}
+.heroLogo h1{
+  margin:0 0 .6rem;
+}
+.heroStats{
+  display:flex;
+  justify-content:center;
+  gap:2.4rem;
+  margin-top:2.6rem;
+  flex-wrap:wrap;
+}
+.heroStat b{
+  display:block;
+  font-family:var(--font-display);
+  font-size:1.9rem;
+  color:var(--gold);
+}
+.heroStat span{
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--chrome-3);
+}
+
+/* ---------- sections ---------- */
+section{
+  position:relative;
+  z-index:1;
+  max-width:1200px;
+  margin:0 auto;
+  padding:3rem 1.5rem;
+}
+.sectionHead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:1rem;
+  margin-bottom:1.6rem;
+  flex-wrap:wrap;
+}
+.sectionHead h2{
+  font-family:var(--font-display);
+  font-size:1.9rem;
+  margin:0;
+  color:#fff;
+}
+.sectionHead p{
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--chrome-3);
+  margin:0;
+}
+
+/* ---------- artist grid ---------- */
+.artistGrid{
+  display:grid;
+  justify-content:center;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:1.4rem;
+}
+
+.artistBox{
+  position:relative;
+  padding:2px;
+  border-radius:var(--radius-lg);
+  background:linear-gradient(135deg, var(--chrome-4), rgba(255,255,255,.05));
+  isolation:isolate;
+  cursor:pointer;
+}
+.artistBox::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:2px;
+  background:conic-gradient(from 0deg, var(--pink), var(--cyan), var(--violet), var(--gold), var(--pink));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  opacity:0;
+  transition:opacity .25s ease;
+  animation:spinBorder 5s linear infinite;
+  z-index:-1;
+}
+.artistBox:hover::before{ opacity:1; }
+.artistBox:hover{ transform:translateY(-6px); }
+.artistBox{ transition:transform .2s ease; }
+@keyframes spinBorder{ to{ background-position:100% 0; filter:hue-rotate(360deg); } }
+
+.artistCard{
+  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(13,2,33,.65));
+  border-radius:calc(var(--radius-lg) - 2px);
+  overflow:hidden;
+  height:100%;
+}
+
+.artistImgWrap{
+  position:relative;
+  aspect-ratio:4/3;
+  background:linear-gradient(135deg, var(--bg-2), var(--bg-1));
+  overflow:hidden;
+}
+.artistImg{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  transition:transform .35s ease;
+}
+.artistBox:hover .artistImg{ transform:scale(1.08); }
+.artistImgWrap.noImg{ display:grid; place-items:center; }
+.artistImgWrap.noImg::after{
+  content:"\266B";
+  font-size:2.6rem;
+  color:var(--chrome-3);
+}
+
+.newBadge{
+  position:absolute;
+  top:.6rem; left:.6rem;
+  font-family:var(--font-mono);
+  font-size:.65rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:.3em .7em;
+  border-radius:999px;
+  color:#3a0026;
+  background:linear-gradient(180deg,#fff, var(--gold));
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+
+.artistCardBody{ padding:1rem 1.1rem 1.2rem; }
+.artistCardBody h3{
+  margin:0 0 .2rem;
+  font-family:var(--font-body);
+  font-weight:700;
+  font-size:1.08rem;
+  color:#fff;
+}
+.artistMeta{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--cyan);
+}
+.artistMeta .dot{ color:var(--chrome-3); }
+.artistLoc{ color:var(--chrome-3); }
+
+.emptyState{
+  grid-column:1/-1;
+  text-align:center;
+  padding:3rem 1rem;
+  font-family:var(--font-mono);
+  color:var(--chrome-3);
+  border:1px dashed var(--line);
+  border-radius:var(--radius-lg);
+}
+
+/* ---------- location / map section ---------- */
+.locateShell{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:1.4rem;
+}
+.searchEngineRadius{
+  display:flex;
+  gap:.6rem;
+  margin-top:.7rem;
+}
+
+#map{
+  height:420px;
+  width:100%;
+  border-radius:var(--radius-lg);
+  border:2px solid var(--chrome-4);
+  box-shadow:0 0 0 6px rgba(181,55,242,.08), 0 20px 50px rgba(0,0,0,.5);
+  filter:saturate(1.05);
+}
+.leaflet-popup-content-wrapper{
+  background:var(--bg-1);
+  color:#fff;
+  border-radius:12px;
+  font-family:var(--font-body);
+}
+.leaflet-popup-tip{ background:var(--bg-1); }
+
+/* ---------- modal ---------- */
+.modalOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(6,1,18,.75);
+  backdrop-filter:blur(6px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
+  padding:1.5rem;
+}
+.modalOverlay.open{ display:flex; }
+.modalCard{
+  width:min(420px, 100%);
+  background:linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  padding:1.6rem;
+  position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+}
+.modalClose{
+  position:absolute;
+  top:.8rem; right:.8rem;
+  background:none;
+  border:none;
+  color:var(--chrome-2);
+  font-size:1.3rem;
+  cursor:pointer;
+  line-height:1;
+}
+.modalCard h3{
+  font-family:var(--font-display);
+  font-size:1.5rem;
+  margin:.2rem 0 .3rem;
+  color:#fff;
+}
+.modalCard p{ color:var(--chrome-2); line-height:1.5; }
+.modalTags{ display:flex; gap:.5rem; flex-wrap:wrap; margin:.8rem 0 1.2rem; }
+
+/* ---------- footer ---------- */
+footer{
+  position:relative;
+  z-index:1;
+  margin-top:2rem;
+  padding:2rem 1.5rem 2.4rem;
+  text-align:center;
+  border-top:1px solid var(--line);
+  font-family:var(--font-mono);
+  font-size:.78rem;
+  letter-spacing:.04em;
+  color:var(--chrome-3);
+}
+.footerDivider{
+  width:120px;
+  height:2px;
+  margin:0 auto 1rem;
+  background:linear-gradient(90deg, var(--pink), var(--cyan), var(--violet));
+}
+
+/* ---------- secondary page header (add artist / login / view artist) ---------- */
+.subpageLogoRow{
+  display:flex;
+  justify-content:center;
+  padding:.7rem 0 1rem;
+}
+#smallLogo{
+  height:38px;
+}
+
+/* ---------- generic form panel (used by Add Artist + Login) ---------- */
+.formPanel{
+  max-width:520px;
+  margin:2.5rem auto;
+  padding:2rem;
+  border-radius:var(--radius-lg);
+  background:var(--bg-3);
+  border:1px solid var(--line);
+}
+.formPanel h1{
+  font-family:var(--font-display);
+  font-size:1.7rem;
+  text-align:center;
+  margin:0 0 1.6rem;
+  background:var(--chrome-1);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.form-group{
+  margin-bottom:1.2rem;
+  display:flex;
+  flex-direction:column;
+  gap:.4rem;
+}
+.form-group label{
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--cyan);
+}
+.form-group input{ width:100%; }
+
+.formPanel .chromebtn{
+  width:100%;
+  margin-top:.6rem;
+  padding:.85em 1.4em;
+}
+.formPanel .chromebtn:disabled{
+  opacity:.65;
+  cursor:progress;
+  transform:none;
+}
+
+.formHint{
+  text-align:center;
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  color:var(--chrome-3);
+  margin-top:1rem;
+}
+
+/* ---------- add artist ---------- */
+.add-artist-container{ padding:1rem 1.5rem; }
+.add-artist-container > h1{
+  max-width:640px;
+  margin:2.5rem auto 0;
+  text-align:center;
+  font-family:var(--font-display);
+  font-size:clamp(1.6rem, 4vw, 2.4rem);
+  color:#fff;
+  text-shadow:0 0 30px rgba(181,55,242,.4);
+}
+
+/* ---------- login ---------- */
+.login-container{ padding:1rem 1.5rem; }
+.login-box{ /* alias of .formPanel, styled via .formPanel class on the element */ }
+
+/* ---------- view artist ---------- */
+#artistHeader{
+  max-width:1000px;
+  margin:2.5rem auto 0;
+  padding:1.6rem;
+  display:flex;
+  align-items:center;
+  gap:1.6rem;
+  flex-wrap:wrap;
+  border-radius:var(--radius-lg);
+  background:var(--bg-3);
+  border:1px solid var(--line);
+}
+#artistPic{
+  width:140px;
+  height:140px;
+  object-fit:cover;
+  border-radius:50%;
+  border:3px solid var(--chrome-2);
+  box-shadow:0 0 0 6px rgba(181,55,242,.12), 0 10px 30px rgba(0,0,0,.5);
+}
+#artistInfo{ flex:1; min-width:200px; }
+#artistInfo h2{
+  font-family:var(--font-display);
+  font-size:2rem;
+  margin:0 0 .3rem;
+  color:#fff;
+}
+#artistInfo p{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:.75rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--cyan);
+  margin:0 .6rem 0 0;
+}
+#artistButtons{
+  display:flex;
+  gap:.7rem;
+  flex-wrap:wrap;
+}
+#favArtist.active{
+  background:var(--pink);
+  color:#3a0026;
+}
+
+#artistStats{
+  max-width:1000px;
+  margin:2.5rem auto;
+  padding:0 1.5rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1.4rem;
+}
+.statBox{
+  padding:1.4rem;
+  border-radius:var(--radius-lg);
+  background:var(--bg-3);
+  border:1px solid var(--line);
+}
+.statBox h2{
+  font-family:var(--font-display);
+  font-size:1.2rem;
+  margin:0 0 1rem;
+  color:var(--gold);
+}
+.concertList{
+  list-style:none;
+  margin:0; padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:.8rem;
+}
+.concertList li{
+  padding-bottom:.8rem;
+  border-bottom:1px dashed var(--line);
+  font-size:.9rem;
+  color:var(--chrome-2);
+  line-height:1.4;
+}
+.concertList li:last-child{ border-bottom:none; padding-bottom:0; }
+.concertList .band{ color:#fff; font-weight:700; }
+.concertList .venue{ color:var(--cyan); }
+.concertList .when{
+  display:block;
+  font-family:var(--font-mono);
+  font-size:.7rem;
+  letter-spacing:.04em;
+  color:var(--chrome-3);
+  margin-top:.15rem;
+}
+
+@media (max-width: 720px){
+  #artistStats{ grid-template-columns:1fr; }
+  #artistHeader{ text-align:center; justify-content:center; }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 720px){
+  .nav{ flex-wrap:wrap; }
+  .navLeft, .navRight{ flex:none; }
+  .heroStats{ gap:1.4rem; }
+  #map{ height:320px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+    scroll-behavior:auto !important;
   }
-
-h1, h2, h3 {
-    font-family: "Concert One";
-}
-
-p {
-    font-family: "Open Sans"
-}
-
-a, button {
-    text-decoration: none;
-    color: #ffffffd5;
-}
-
-h1 {
-    text-align: center;
-    font-weight: bolder;
-}
-
-body {
-    background-color: #75B8C8;
-}
-
-button {
-    min-width: fit-content;
-    min-height: fit-content;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: white;
-    border: 0px;
-    background-color: #77cbb9;
-    border-radius: 3em;
-}
-
-input {
-    border-radius: 3em;
-    border: 0px;
-    background-color: #CDD3D5;
-}
-
-/* Creates a flex to diplay the search bar correctly. */
-.searchEngine {
-    margin-left: auto;
-    margin-right: auto;
-    width: fit-content; 
-
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-
-    gap: 5px;
-}
-
-.nav {
-    display: flex;
-    justify-content: right;
-    gap: 10px;
-    margin-right: 3em;
-}
-
-.logoContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1em;
-}
-
-#addArtistNav {
-    /* margin-top: 10px; */
-}
-
-/* This seperates the search button and the filter button so that they're able to be displayed correctly. */
-.searchEngineTop {
-    margin-top: 1.5em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.searchEngineBot {
-    display: flex;
-    justify-content: center;
-    position: relative;
-}
-
-.searchEngineRadius {
-    margin-left: -8em; /* This is a bit of a hack to get the radius search to be in the correct position. */
-    width: 30em;
-    display: flex;
-    justify-content: center;
-    position: relative;
-}
-
-.navButton {
-    align-items: right;
-    width: 4.5em;
-    height: 2em;
-    /* margin-left: 75em; */
-    margin-bottom: -3em;
-}
-
-.navButton#addArtist {
-    width: 10em;
-}
-
-#searchButtonImg {
-    width: 3em;
-    height: 3em;
-    margin-left: 3px;
-}
-
-#searchButton {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    border: 0px;
-    background-color: #77cbb9;
-    margin-left: 3px;
-}
-
-#radiusEnterButton {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    border: 0px;
-    background-color: #77cbb9;
-    margin-left: 3px;
-}
-
-#filterButton {
-    width: 5em;
-    height: 2em;
-}
-
-#filterOptions {
-    margin-left: 3px;
-    border: 0;
-    width: 12em;
-    height: 15em;
-    position: absolute;
-    z-index: 9999;
-    top: 0%;
-    left: 100%;
-
-    background-color: #81a89d;
-    border-radius: 1em;
-}
-
-#homeSearch {
-    width: 60em;
-    height: 3em;
-}
-
-#citySearch {
-    width: 60em;
-    height: 3em;
-}
-
-#featuredArtists {
-    margin-left: auto;
-    margin-right: auto;
-    width: fit-content; 
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1em;
-}
-
-#row1, #row2 {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1em;
-}
-
-#map {
-    border: 1em solid #77CBB9;
-    border-radius: 20px;
-    overflow: hidden;
-    height: 70vh;
-    width: 60vw;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 2em;
-    margin-bottom: 2em;
-}
-
-.artistBox {
-    width: 16.65em;
-    height: 16.65em;
-    border: 0px;
-    text-align: center;
-    background-color: #77CBB9;
-    border-radius: 2em;
-}
-
-.artistBox h3, p {
-    color: #ffffffd5;
-    line-height: 1px;
-}
-
-.artistBox:hover {
-    transform: translateY(-4px);
-    transform: translateX(4px);
-    background-color: #81a89d;
-  }
-
-.logo {
-    /* font-size: 4rem; */
-    width: 18em;
-    height: 16.65em;
-    display: block;
-    margin: auto;
-    margin-bottom: 2px;
-}
-
-.artistImg {
-    margin-top: 15px;
-    margin-bottom: 5px;
-    height: 11em;
-    width: 9em;
-}
-
-.add-artist-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 50vh;
-    width: fit-content;
-    padding: 20px;
-    border-radius: 10px;
-    background-color: #ffffff;
-}
-
-footer {
-    margin: 1em;
-    margin-top: 7em;
-    margin-bottom: 2em;
-}
-
-/* ------------------------------------------
-    Login Page CSS
-------------------------------------------- */
-
-.login-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 80vh;
-    padding: 20px;
-}
-
-.login-box {
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-}
-
-.login-box h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #4CAF50;
-}
-
-#login {
-    width: 100%;
-    padding: 12px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-#login:hover {
-    background-color: #45a049;
-}
-
-/* Here is where i pasted */
-.login-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 80vh;
-    padding: 20px;
-}
-
-.login-box {
-    background: white;
-    padding-bottom: 40px;
-    margin-top: -14em;
-    padding-left: 40px;
-    padding-right: 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-}
-
-.login-box h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #4CAF50;
-}
-
-#login {
-    width: 100%;
-    padding: 12px;
-    background-color: #75B8C8;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-#login:hover {
-    background-color: #51b1c9;
-}
-
-/* ------------------------------------------
-    Add Artist Page CSS
-------------------------------------------- */
-
-#bandSubmission {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5em;
-}
-
-#bandSubmission input {
-    width: 25em;
-    height: 2.5em;
-    border-radius: 10px;
-    
-}
-
-.logo#smallLogo {
-    width: 7em;
-    height: 5.65em;
-    margin: 0;
-    background-color: transparent;
-    padding-left: 30px;
-}
-
-#artistHeader {
-    width: 65em;
-    height: 10em;
-    margin: auto;
-    background-color: #506C64;
-
-    display: flex;
-    align-items: center; /* Vertical center */
-    /* justify-content: center; Horizontal center (optional) */
-}
-
-#artistHeader h2,p {
-    padding-left: 1em;
-    line-height: 0.1em;
-}
-
-#artistInfo {
-    display: flex;
-    flex-direction: column;
-}
-
-#artistButtons {
-    display: flex;
-    flex-direction: column;
-    margin-left: 32em;
-}
-
-#artistStats {
-    display: flex;
-    /* flex-direction: row; */
-    /* gap: 2em; */
-    justify-content: center;
-}
-
-.statBox {
-    margin: 35px;
-    width: 35em;
-    height: auto;
-    background-color: #506C64;
-    display: flex;
-    flex-direction: column;
-    padding: 2em;
-}
-
-.statBox p,
-.statBox h2 {
-    text-align: center;
-    line-height: 25px;
-}
-
-.artistCard {
-    border: 1 px solid #ddd;
-    border-radius: 8px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 10px;
-    background: white;
-}
-
-.artist-info h2 {
-    margin: 0 0 4px;
-    font-size: 16 px;
-
-}
-
-.artist-info p {
-    margin: 0 0 4px;
-    font-size: 13 px;
-    color: #666;
-    line-height: 1em;
-
-}
-
-#artistButtons button {
-    width: 9em;
-    height: 2em;
-    margin: 0.5em;
-    font-weight: bold;
-    font-size: large;
-}
-
-
-#artistHeader p {
-    padding-left: 1.5em;
-}
-
-#artistPic {
-    margin-left: 1em;
-    width: 8.5em;
-    height: 8.5em;
-    border-radius: 50%;
-   
 }

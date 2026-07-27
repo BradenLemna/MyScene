@@ -2,111 +2,118 @@
 File Name: viewArtist.html
 Initial Implementation: Shayne Thompson, @whisperingcoder (Github)
 Continued Development: Braden Lemna, @BradenLemna (Github)
-Description: This is the dyanamic View Artist page. For the purpose of showcasing, it will only show one artist for now. 
+Description: This is the dynamic View Artist page. For the purpose of showcasing, it will only show one artist for now.
 -->
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <link rel="stylesheet" href="../style.css">
-    <title>Auntie Aircraft (My Scene)</title>
-    <link rel="icon" type="image/x-icon" href="Icons/mySceneLogo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../style.css">
+  <title>Auntie Aircraft (MyScene)</title>
+  <link rel="icon" type="image/x-icon" href="Icons/mySceneLogo.png">
 </head>
 
-<header>
-    <div class="nav" id="addArtistNav">
-        <button style="width: 6em;" id="goBackButton" class="navButton">
-            <a href="../index.html" >Go Back</a>
-        </button>
-
-        <button id="loginButton" class="navButton">
-            <a href="login.html">Log In</a>
-        </button>
-    </div>
-
-    <a href="../index.html">
-        <img src="Icons/mySceneLogo.png" class="logo" id="smallLogo">
-    </a>
-</header>
-
 <body id="idkyet">
-    <div id="artistHeader">
-        <img src="Artist Pics/auntieaircraftprofile.jpg" id="artistPic">
-        <div id="artistInfo">
-            <h2>Auntie Aircraft</h2>
-            <p>Rock</p>
-                <p>Tennesse</p>
-        </div>
 
-        <div id="artistButtons">
-            <button id="favArtist"> <3 Fav Artist</button>
-            <button id="viewSimilar">View Similar</button>
-        </div>
-       
+  <header>
+    <div class="nav" id="addArtistNav">
+      <button style="width: 6em;" id="goBackButton" class="btn cyan">
+        <a href="../index.html">Go Back</a>
+      </button>
+
+      <div class="subpageLogoRow">
+        <a href="../index.html" aria-label="MyScene home">
+          <img src="Icons/mySceneLogo.png" class="logo" id="smallLogo" alt=""
+              onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
+        </a>
+      </div>
+
+      <button id="loginButton" class="btn pink">
+        <a href="login.html">Log In</a>
+      </button>
+    </div>
+    
+  </header>
+
+  <main>
+    <div id="artistHeader">
+      <img src="Artist Pics/auntieaircraftprofile.jpg" id="artistPic" alt="Auntie Aircraft"
+           onerror="this.style.display='none';">
+      <div id="artistInfo">
+        <h2>Auntie Aircraft</h2>
+        <p>Rock</p>
+        <p>Tennessee</p>
+      </div>
+
+      <div id="artistButtons">
+        <button id="favArtist" class="btn pink" type="button">&hearts; Fav Artist</button>
+        <button id="viewSimilar" class="btn cyan" type="button">View Similar</button>
+      </div>
     </div>
 
     <div id="artistStats">
-        <div class="statBox">
-            <h2>Previous Concerts</h3>
-            <p>
-                The Velvet Echoes — George's Majestic Lounge — March 18, 2026 — 8:30 PM<br>
-                -<br>
-Neon Skyline — JJ's Live — March 12, 2026 — 9:00 PM<br>
--<br>
-The Static Pines — Smoke & Barrel Tavern — March 5, 2026 — 8:00 PM<br>
--<br>
-Lunar Weekend — George's Majestic Lounge — February 27, 2026 — 9:30 PM<br>
--<br>
-Southbound Revival — JJ's Live — February 21, 2026 — 7:45 PM<br>
--<br>
-Midnight Carousel — The Momentary Green — February 14, 2026 — 8:15 PM<br>
--<br>
-Copper Alley Band — Smoke & Barrel Tavern — February 8, 2026 — 7:30 PM<br>
--<br>
-Satellite Hearts — George's Majestic Lounge — January 31, 2026 — 9:00 PM<br>
--<br>
-The Broken Signals — JJ's Live — January 24, 2026 — 8:30 PM<br>
--<br>
-Golden Hour Drive — Smoke & Barrel Tavern — January 17, 2026 — 7:45 PM<br>
-            </p>
-        </div>
+      <div class="statBox">
+        <h2>Previous Concerts</h2>
+        <ul class="concertList">
+          <li><span class="band">The Velvet Echoes</span> &mdash; <span class="venue">George's Majestic Lounge</span><span class="when">March 18, 2026 &mdash; 8:30 PM</span></li>
+          <li><span class="band">Neon Skyline</span> &mdash; <span class="venue">JJ's Live</span><span class="when">March 12, 2026 &mdash; 9:00 PM</span></li>
+          <li><span class="band">The Static Pines</span> &mdash; <span class="venue">Smoke &amp; Barrel Tavern</span><span class="when">March 5, 2026 &mdash; 8:00 PM</span></li>
+          <li><span class="band">Lunar Weekend</span> &mdash; <span class="venue">George's Majestic Lounge</span><span class="when">February 27, 2026 &mdash; 9:30 PM</span></li>
+          <li><span class="band">Southbound Revival</span> &mdash; <span class="venue">JJ's Live</span><span class="when">February 21, 2026 &mdash; 7:45 PM</span></li>
+          <li><span class="band">Midnight Carousel</span> &mdash; <span class="venue">The Momentary Green</span><span class="when">February 14, 2026 &mdash; 8:15 PM</span></li>
+          <li><span class="band">Copper Alley Band</span> &mdash; <span class="venue">Smoke &amp; Barrel Tavern</span><span class="when">February 8, 2026 &mdash; 7:30 PM</span></li>
+          <li><span class="band">Satellite Hearts</span> &mdash; <span class="venue">George's Majestic Lounge</span><span class="when">January 31, 2026 &mdash; 9:00 PM</span></li>
+          <li><span class="band">The Broken Signals</span> &mdash; <span class="venue">JJ's Live</span><span class="when">January 24, 2026 &mdash; 8:30 PM</span></li>
+          <li><span class="band">Golden Hour Drive</span> &mdash; <span class="venue">Smoke &amp; Barrel Tavern</span><span class="when">January 17, 2026 &mdash; 7:45 PM</span></li>
+        </ul>
+      </div>
 
-        <div class="statBox">
-            <h2>Upcoming Concerts</h3>
-            <p>
-                Aurora Tide — George's Majestic Lounge — April 10, 2026 — 8:30 PM<br>
-                -<br>
-Midnight Static — JJ's Live — April 12, 2026 — 9:00 PM<br>
--<br>
-Crimson Weekend — Smoke & Barrel Tavern — April 15, 2026 — 7:45 PM<br>
--<br>
-Neon Prairie — The Momentary — April 18, 2026 — 8:00 PM<br>
--<br>
-Velvet Satellites — George's Majestic Lounge — April 22, 2026 — 9:15 PM<br>
--<br>
-Silver Canyon — JJ's Live — April 25, 2026 — 8:30 PM<br>
--<br>
-Electric Juniper — Smoke & Barrel Tavern — April 29, 2026 — 7:30 PM<br>
--<br>
-The Northern Echo — The Momentary — May 2, 2026 — 8:00 PM<br>
--<br>
-Golden Transit — George's Majestic Lounge — May 6, 2026 — 9:00 PM<br>
--<br>
-Wildflower Circuit — JJ's Live — May 9, 2026 — 8:45 PM<br>
--<br>
-Lunar Highway — Smoke & Barrel Tavern — May 13, 2026 — 7:30 PM<br>
--<br>
-Static Reverie — The Momentary — May 16, 2026 — 8:15 PM<br>
--<br>
-Copper Skyline — George's Majestic Lounge — May 20, 2026 — 9:00 PM<br>
--<br>
-Echo Harbor — JJ's Live — May 23, 2026 — 8:30 PM<br>
--<br>
-Prairie Voltage — Smoke & Barrel Tavern — May 27, 2026 — 7:45 PM<br>
-            </p>
-        </div>
+      <div class="statBox">
+        <h2>Upcoming Concerts</h2>
+        <ul class="concertList">
+          <li><span class="band">Aurora Tide</span> &mdash; <span class="venue">George's Majestic Lounge</span><span class="when">April 10, 2026 &mdash; 8:30 PM</span></li>
+          <li><span class="band">Midnight Static</span> &mdash; <span class="venue">JJ's Live</span><span class="when">April 12, 2026 &mdash; 9:00 PM</span></li>
+          <li><span class="band">Crimson Weekend</span> &mdash; <span class="venue">Smoke &amp; Barrel Tavern</span><span class="when">April 15, 2026 &mdash; 7:45 PM</span></li>
+          <li><span class="band">Neon Prairie</span> &mdash; <span class="venue">The Momentary</span><span class="when">April 18, 2026 &mdash; 8:00 PM</span></li>
+          <li><span class="band">Velvet Satellites</span> &mdash; <span class="venue">George's Majestic Lounge</span><span class="when">April 22, 2026 &mdash; 9:15 PM</span></li>
+          <li><span class="band">Silver Canyon</span> &mdash; <span class="venue">JJ's Live</span><span class="when">April 25, 2026 &mdash; 8:30 PM</span></li>
+          <li><span class="band">Electric Juniper</span> &mdash; <span class="venue">Smoke &amp; Barrel Tavern</span><span class="when">April 29, 2026 &mdash; 7:30 PM</span></li>
+          <li><span class="band">The Northern Echo</span> &mdash; <span class="venue">The Momentary</span><span class="when">May 2, 2026 &mdash; 8:00 PM</span></li>
+          <li><span class="band">Golden Transit</span> &mdash; <span class="venue">George's Majestic Lounge</span><span class="when">May 6, 2026 &mdash; 9:00 PM</span></li>
+          <li><span class="band">Wildflower Circuit</span> &mdash; <span class="venue">JJ's Live</span><span class="when">May 9, 2026 &mdash; 8:45 PM</span></li>
+          <li><span class="band">Lunar Highway</span> &mdash; <span class="venue">Smoke &amp; Barrel Tavern</span><span class="when">May 13, 2026 &mdash; 7:30 PM</span></li>
+          <li><span class="band">Static Reverie</span> &mdash; <span class="venue">The Momentary</span><span class="when">May 16, 2026 &mdash; 8:15 PM</span></li>
+          <li><span class="band">Copper Skyline</span> &mdash; <span class="venue">George's Majestic Lounge</span><span class="when">May 20, 2026 &mdash; 9:00 PM</span></li>
+          <li><span class="band">Echo Harbor</span> &mdash; <span class="venue">JJ's Live</span><span class="when">May 23, 2026 &mdash; 8:30 PM</span></li>
+          <li><span class="band">Prairie Voltage</span> &mdash; <span class="venue">Smoke &amp; Barrel Tavern</span><span class="when">May 27, 2026 &mdash; 7:45 PM</span></li>
+        </ul>
+      </div>
     </div>
-    <script type="module" src="viewArtitst.js"></script>
-</body>
+  </main>
 
-<footer>
-    <p>Created by Theta Protocol, Hoghacks Hackathon 2026 Team.</p>
- </footer>
+  <script type="module" src="viewArtist.js"></script>
+
+  <footer>
+    <div class="footerDivider"></div>
+    <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+  </footer>
+
+  <script>
+    // Ambient starfield to match the homepage.
+    (function spawnStars() {
+      const field = document.querySelector(".starfield");
+      if (!field) return;
+      const count = window.innerWidth < 600 ? 26 : 46;
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement("span");
+        s.style.top = Math.random() * 100 + "%";
+        s.style.left = Math.random() * 100 + "%";
+        s.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
+        s.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
+        field.appendChild(s);
+      }
+    })();
+  </script>
+</body>
+</html>

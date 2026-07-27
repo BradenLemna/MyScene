@@ -8,45 +8,70 @@ Description: Login page for MyScene. Takes username and password, verifies with 
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../style.css">
     <title>Login - MyScene</title>
     <link rel="icon" type="image/x-icon" href="Icons/mySceneLogo.png">
 </head>
-
-<header>
-    <div class="logoContainer">
-        <a href="../index.html">
-            <img src="Icons/mySceneLogo.png" class="logo">
-        </a>
-    </div>
-</header>
-
 <body>
 
-    <div class="login-container">
-        <div class="login-box">
-            <h1>Login</h1>
-            <form id="loginForm" onsubmit="event.preventDefault();">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <button type="button" id="login">Login</button>
-            </form>
+    <header>
+        <div class="nav" id="addArtistNav">
+            <button style="width: 6em;" id="goBackButton" class="btn cyan">
+                <a href="../index.html">Go Back</a>
+            </button>
+
+            <a href="../index.html" aria-label="MyScene home" class="logoContainer">
+                <img src="Icons/mySceneLogo.png" class="logo" id="smallLogo" alt=""
+                     onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
+            </a>
         </div>
-    </div>
+    </header>
+
+    <main>
+        <div class="login-container">
+            <div class="login-box formPanel">
+                <h1>Login</h1>
+                <form id="loginForm" onsubmit="event.preventDefault();">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+
+                    <button type="button" id="login" class="btn pink">Login</button>
+                </form>
+            </div>
+        </div>
+    </main>
 
     <script src="login.js"></script>
+
+    <footer>
+        <div class="footerDivider"></div>
+        <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+    </footer>
+
+    <script>
+        // Ambient starfield to match the homepage.
+        (function spawnStars() {
+            const field = document.querySelector(".starfield");
+            if (!field) return;
+            const count = window.innerWidth < 600 ? 26 : 46;
+            for (let i = 0; i < count; i++) {
+                const s = document.createElement("span");
+                s.style.top = Math.random() * 100 + "%";
+                s.style.left = Math.random() * 100 + "%";
+                s.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
+                s.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
+                field.appendChild(s);
+            }
+        })();
+    </script>
 </body>
-
-
-<footer>
-    <p>Created by Theta Protocol, Hoghacks Hackathon 2026 Team.</p>
-</footer>
 </html>

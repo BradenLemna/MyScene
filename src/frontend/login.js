@@ -3,6 +3,16 @@ document.getElementById("login").addEventListener("click", function() {
     var username = document.getElementById("username").value;
     var password = document.getElementById("password").value;
 
+    if (!username || !password) {
+        alert("Please enter both a username and password.");
+        return;
+    }
+
+    const button = document.getElementById("login");
+    button.disabled = true;
+    const originalLabel = button.textContent;
+    button.textContent = "Logging in...";
+
     fetch("https://api.myscene.live/verify_user", {
         method: "POST",
         headers: {
@@ -21,5 +31,13 @@ document.getElementById("login").addEventListener("click", function() {
           } else {
               alert("Invalid username or password");
           }
+      })
+      .catch(err => {
+          console.error("Login request failed:", err);
+          alert("Couldn't reach the server. Please try again.");
+      })
+      .finally(() => {
+          button.disabled = false;
+          button.textContent = originalLabel;
       });
 });

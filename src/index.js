@@ -1,58 +1,80 @@
 import { setUserLocation, calculateDistance, testInRange } from "./backend/locationHandling.js";
 import { autoCompleteCity, getLatitude, getLongitude, getLocation, getGenre } from "./backend/apiCallsClientside.js";
 
-/*
+// ---------- page chrome: starfield + scrolling ticker ----------
 document.addEventListener("DOMContentLoaded", () => {
-    
+    spawnStars();
+    renderTicker();
 });
-*/
 
+function spawnStars() {
+    const field = document.querySelector(".starfield");
+    if (!field) return;
+    const count = window.innerWidth < 600 ? 26 : 46;
+    for (let i = 0; i < count; i++) {
+        const s = document.createElement("span");
+        s.style.top = Math.random() * 100 + "%";
+        s.style.left = Math.random() * 100 + "%";
+        s.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
+        s.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
+        field.appendChild(s);
+    }
+}
+
+function renderTicker() {
+    const track = document.getElementById("tickerTrack");
+    if (!track) return;
+    const messages = [
+        "NEW ARTISTS ADDED WEEKLY",
+        "DISCOVER YOUR NEXT FAVORITE LOCAL BAND",
+        "MADE BY THETA PROTOCOL — HOGHACKS 2026"
+    ];
+    const loopContent = messages.map(m => `<span>&#10022; ${m}</span>`).join("");
+    track.innerHTML = loopContent + loopContent; // duplicated for a seamless scroll loop
+}
+
+// ---------- artist search ----------
 document.getElementById("searchButton").addEventListener("click", search);
 async function search() {
-    //alert("searching");
-    console.log("searching");
-    /*var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(function(checkbox) {
-        if (!checkbox.checked){
-            return;
-        }
-        //add to list
-        if(genreTrue){
-        //checkbox.name? or checkbox.value? or checkbox.id?
-            addGenre(checkbox.id);
-        }
-        if(datesTrue){
-            addDates(checkbox.id);
-        }
-        if(sizeTrue){
-            addSize(checkbox.id);
-        }
-    });*/
-    
     let input = document.getElementById("homeSearch").value;
     if (input.trim() === "") {
         alert("Please enter an artist name.");
         return;
     }
-    let genre = await getGenre(input);
-    alert(genre);
-    const res = await fetch("https://api.myscene.live/search_genre",{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
 
-        body: JSON.stringify({
-            music_genre: genre
-            //prevconcerts: prevconvertList,
-            //distances: distanceList
-        })
-    });
+    setSearchLoading(true);
+    try {
+        let genre = await getGenre(input);
 
-    let data = await res.json();
-    console.log(data);
+        const res = await fetch("https://api.myscene.live/search_genre", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                music_genre: genre
+                //prevconcerts: prevconvertList,
+                //distances: distanceList
+            })
+        });
 
-    displayArtists(data.artists);
+        let data = await res.json();
+        console.log(data);
+
+        displayArtists(data.artists);
+    } catch (err) {
+        console.error("Search failed:", err);
+        alert("Something went wrong searching for that artist. Please try again.");
+    } finally {
+        setSearchLoading(false);
+    }
+}
+
+function setSearchLoading(isLoading) {
+    const btn = document.getElementById("searchButton");
+    if (!btn) return;
+    btn.disabled = isLoading;
+    btn.classList.toggle("isLoading", isLoading);
 }
 
 document.getElementById("radiusEnterButton").addEventListener("click", function() {
@@ -75,30 +97,103 @@ input.addEventListener('keyup', function() {
         if (query.length > 2) {
             autoCompleteCity(query).then(suggestions => {
                 console.log(suggestions);
-                // Here you can update your UI with the suggestions
+                renderCitySuggestions(suggestions);
             });
+        } else {
+            renderCitySuggestions([]);
         }
     }, 500); // Delay of 500ms after the user stops typing
 });
 
+// Lightweight dropdown for city autocomplete results, styled to match the chrome search pill.
+function renderCitySuggestions(suggestions) {
+    let list = document.getElementById("citySuggestions");
+    if (!list) {
+        list = document.createElement("div");
+        list.id = "citySuggestions";
+        list.className = "citySuggestions";
+        input.insertAdjacentElement("afterend", list);
+    }
+    if (!suggestions || suggestions.length === 0) {
+        list.innerHTML = "";
+        list.style.display = "none";
+        return;
+    }
+    list.style.display = "block";
+    list.innerHTML = suggestions.map(s => `<button type="button" class="citySuggestion">${s}</button>`).join("");
+    list.querySelectorAll(".citySuggestion").forEach(btn => {
+        btn.addEventListener("click", () => {
+            input.value = btn.textContent;
+            list.style.display = "none";
+        });
+    });
+}
+
+// Renders search results using the same chrome artist-card styling as the featured grid.
 function displayArtists(artists) {
     document.getElementById("searchResults").style.display = "block";
     document.getElementById("featuredArtists").style.display = "none";
     document.getElementById("map").style.display = "none";
 
     const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = artists.map(artist => `
-        <div class="artistCard">
-            <div class = "artist-info">
-                <h2>${artist.artist_name}</h2>
-                <p>Genre:${artist.music_genre}</p>
-                <p>${artist.location_city}, ${artist.location_region}</p>
-                <p>${artist.insta_handle}</p>
+
+    if (!artists || artists.length === 0) {
+        resultsDiv.innerHTML = `<div class="emptyState">No artists match that search yet — try a different name or clear a filter.</div>`;
+        return;
+    }
+
+    resultsDiv.innerHTML = artists.map((artist, i) => `
+        <div class="artistBox" data-artist-index="${i}" tabindex="0" role="button" aria-label="View ${artist.artist_name}">
+            <div class="artistCard">
+                <div class="artistImgWrap noImg"></div>
+                <div class="artistCardBody">
+                    <h3>${artist.artist_name}</h3>
+                    <div class="artistMeta">
+                        <span>${artist.music_genre}</span>
+                        <span class="dot">&bull;</span>
+                        <span class="artistLoc">${artist.location_city}, ${artist.location_region}</span>
+                    </div>
+                </div>
             </div>
         </div>
     `).join("");
+
+    resultsDiv.querySelectorAll(".artistBox").forEach(box => {
+        const artist = artists[box.dataset.artistIndex];
+        const open = () => openArtistModal(artist);
+        box.addEventListener("click", open);
+        box.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+        });
+    });
 }
 
+// ---------- quick-view modal ----------
+document.getElementById("modalClose")?.addEventListener("click", closeArtistModal);
+document.getElementById("modalOverlay")?.addEventListener("click", e => {
+    if (e.target.id === "modalOverlay") closeArtistModal();
+});
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeArtistModal();
+});
+
+function openArtistModal(artist) {
+    const overlay = document.getElementById("modalOverlay");
+    if (!overlay) return;
+    document.getElementById("modalTitle").textContent = artist.artist_name;
+    document.getElementById("modalBio").textContent = artist.insta_handle
+        ? `Find them on Instagram: ${artist.insta_handle}`
+        : "";
+    document.getElementById("modalTags").innerHTML = `
+        <span class="genreChip active">${artist.music_genre}</span>
+        <span class="genreChip">${artist.location_city}, ${artist.location_region}</span>
+    `;
+    overlay.classList.add("open");
+}
+
+function closeArtistModal() {
+    document.getElementById("modalOverlay")?.classList.remove("open");
+}
 
 // Global variables
 let map = null; // Leaflet map instance (Needed to access in multiple functions)
@@ -117,19 +212,31 @@ function getUserLongitude() {
   return userLongitude;
 }
 
-navigator.geolocation.getCurrentPosition(function(position) {
-  userLatitude = position.coords.latitude;
-  userLongitude = position.coords.longitude;
+navigator.geolocation.getCurrentPosition(
+  function(position) {
+    userLatitude = position.coords.latitude;
+    userLongitude = position.coords.longitude;
 
-  setUserLocation(userLongitude, userLatitude);
-  console.log("User location set to:", userLatitude, userLongitude);
-  
-  // Initialize map after geolocation is ready
-  initializeMap();
-  updateRadiusCircle(10);
-  userMarker.bringToFront(); // Bring circle marker to the front
-});
+    setUserLocation(userLongitude, userLatitude);
+    console.log("User location set to:", userLatitude, userLongitude);
 
+    // Initialize map after geolocation is ready
+    initializeMap();
+    updateRadiusCircle(10);
+    userMarker.bringToFront(); // Bring circle marker to the front
+  },
+  function(error) {
+    // User denied location or it's unavailable — fall back to a default
+    // center so the map still renders instead of staying blank.
+    console.warn("Geolocation unavailable, using default center:", error.message);
+    userLatitude = 36.0822;  // Fayetteville, AR
+    userLongitude = -94.1719;
+
+    initializeMap();
+    updateRadiusCircle(10);
+    userMarker.bringToFront();
+  }
+);
 
 let filterone = false;
 let filtertwo = false;
