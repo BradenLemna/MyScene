@@ -19,4 +19,4 @@ cp ~/myscene-git/src/backend/db.php ~/myscene-api/db-api/db.php
 cp ~/myscene-git/updateScripts/apiUpdate.sh ~/apiUpdate.sh
 chmod +x ~/apiUpdate.sh
 
-pm2 reload ~/myscene-api/apiServer/index
+pm2 reload ~/myscene-api/apiServer/index.js
