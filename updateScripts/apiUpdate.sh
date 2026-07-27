@@ -5,6 +5,7 @@
 echo "Running update script"
 
 rm -rf ~/myscene-git
+mkdir ~/myscene-git
 rm -rf ~/myscene-api/apiServer/*
 rm -rf ~/myscene-api/apiCalls/*
 
@@ -16,5 +17,6 @@ cp -r ~/myscene-git/src/backend/db-api/* ~/myscene-api/db-api/
 cp ~/myscene-git/src/backend/db.php ~/myscene-api/db-api/db.php
 
 cp ~/myscene-git/updateScripts/apiUpdate.sh ~/apiUpdate.sh
+chmod +x ~/apiUpdate.sh
 
-pm2 reload index
+pm2 reload ~/myscene-api/apiServer/index
