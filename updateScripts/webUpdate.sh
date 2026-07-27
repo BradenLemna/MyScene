@@ -11,6 +11,7 @@ git clone https://github.com/BradenLemna/MyScene.git ~/myscene-git
 echo "Updating Website"
 
 cp -r ~/myscene-git/. /var/www/html
+nginx -s reload
 
 cp ~/myscene-git/updateScripts/webUpdate.sh ~/webUpdate.sh
 chmod +x ~/webUpdate.sh
