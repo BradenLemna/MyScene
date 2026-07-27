@@ -16,7 +16,13 @@ export async function autoCompleteCity(input) // Calls LocationIQ api to get the
     const response = await fetch(url)
     const data = await response.json()
 
-    const suggestions = data.map(item => item.display_name)
+    const suggestions = JSON.parse(JSON.stringify(data)).map(item => ({
+        id: item.place_id,
+        name: item.display_name,
+        lat: item.lat,
+        lon: item.lon
+    }));
+    
     console.log('Autocomplete suggestions for', input, ':', suggestions)
 
     return suggestions.slice(0, 4) // Return the first 4 suggestions
