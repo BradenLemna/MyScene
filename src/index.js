@@ -1,38 +1,6 @@
 import { setUserLocation, calculateDistance, testInRange } from "./backend/locationHandling.js";
 import { autoCompleteCity, getLatitude, getLongitude, getLocation, getGenre } from "./backend/apiCallsClientside.js";
 
-// ---------- page chrome: starfield + scrolling ticker ----------
-document.addEventListener("DOMContentLoaded", () => {
-    spawnStars();
-    renderTicker();
-});
-
-function spawnStars() {
-    const field = document.querySelector(".starfield");
-    if (!field) return;
-    const count = window.innerWidth < 600 ? 26 : 46;
-    for (let i = 0; i < count; i++) {
-        const s = document.createElement("span");
-        s.style.top = Math.random() * 100 + "%";
-        s.style.left = Math.random() * 100 + "%";
-        s.style.animationDelay = (Math.random() * 3).toFixed(2) + "s";
-        s.style.opacity = (0.3 + Math.random() * 0.7).toFixed(2);
-        field.appendChild(s);
-    }
-}
-
-function renderTicker() {
-    const track = document.getElementById("tickerTrack");
-    if (!track) return;
-    const messages = [
-        "NEW ARTISTS ADDED WEEKLY",
-        "DISCOVER YOUR NEXT FAVORITE LOCAL BAND",
-        "MADE BY THETA PROTOCOL — HOGHACKS 2026"
-    ];
-    const loopContent = messages.map(m => `<span>&#10022; ${m}</span>`).join("");
-    track.innerHTML = loopContent + loopContent; // duplicated for a seamless scroll loop
-}
-
 // ---------- artist search ----------
 document.getElementById("searchButton").addEventListener("click", search);
 async function search() {
@@ -105,7 +73,7 @@ input.addEventListener('keyup', function() {
     }, 500); // Delay of 500ms after the user stops typing
 });
 
-// Lightweight dropdown for city autocomplete results, styled to match the chrome search pill.
+// Lightweight dropdown for city autocomplete results
 function renderCitySuggestions(suggestions) {
     let list = document.getElementById("citySuggestions");
     if (!list) {
@@ -124,6 +92,12 @@ function renderCitySuggestions(suggestions) {
     list.querySelectorAll(".citySuggestion").forEach(btn => {
         btn.addEventListener("click", () => {
             input.value = btn.textContent;
+            userLongitude = s.lon;
+            userLatitude = s.lat;
+            console.log("Selected city coordinates:", userLatitude, userLongitude);
+            setUserLocation(userLongitude, userLatitude);
+            updateRadiusCircle(10); // Reset radius circle to default 10 miles
+            list.innerHTML = "";
             list.style.display = "none";
         });
     });
