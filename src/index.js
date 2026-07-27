@@ -88,7 +88,7 @@ function renderCitySuggestions(suggestions) {
         return;
     }
     list.style.display = "block";
-    list.innerHTML = suggestions.map(s => `<button type="button" class="citySuggestion">${s}</button>`).join("");
+    list.innerHTML = suggestions.map(s => `<button type="button" class="citySuggestion">${s.name}</button>`).join("");
     list.querySelectorAll(".citySuggestion").forEach(btn => {
         btn.addEventListener("click", () => {
             input.value = btn.textContent;
