@@ -88,14 +88,14 @@ function renderCitySuggestions(suggestions) {
         return;
     }
     list.style.display = "block";
-    list.innerHTML = suggestions.map(s => `<button type="button" class="citySuggestion">${s.name}</button>`).join("");
+    list.innerHTML = suggestions.map(s => `<button type="button" class="citySuggestion" data-lon="${s.lon}" data-lat="${s.lat}">${s.name}</button>`).join("");
     list.querySelectorAll(".citySuggestion").forEach(btn => {
         btn.addEventListener("click", () => {
             input.value = btn.textContent;
-            userLongitude = s.lon;
-            userLatitude = s.lat;
+            userLongitude = btn.dataset.lon;
+            userLatitude = btn.dataset.lat;
             console.log("Selected city coordinates:", userLatitude, userLongitude);
-            setUserLocation(userLongitude, userLatitude);
+            updateUserLocation(userLongitude, userLatitude);
             updateRadiusCircle(10); // Reset radius circle to default 10 miles
             list.innerHTML = "";
             list.style.display = "none";
@@ -360,6 +360,17 @@ function updateRadiusCircle(radius)
     
     // Zoom map to fit the radius circle
     map.fitBounds(window.radiusCircle.getBounds());
+}
+
+// Update user location and recenter map
+function updateUserLocation(longitude, latitude)
+{
+    setUserLocation(longitude, latitude);
+    userMarker.setLatLng([latitude, longitude]);
+    if (window.radiusCircle) {
+        window.radiusCircle.setLatLng([latitude, longitude]);
+    }
+    map.setView([latitude, longitude], 11);
 }
 
 // Add map marker for concert location
