@@ -426,10 +426,9 @@ section{
   letter-spacing:.06em;
   text-transform:uppercase;
   padding:.3em .7em;
-  border-radius:999px;
+  border-radius:4px;
   color:#3a0026;
-  background:linear-gradient(180deg,#fff, var(--gold));
-  box-shadow:0 2px 8px rgba(0,0,0,.4);
+  background:var(--gold);
 }
 
 .artistCardBody{ padding:1rem 1.1rem 1.2rem; }
