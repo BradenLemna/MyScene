@@ -138,7 +138,7 @@ app.post('/getFeaturedArtists', async (req, res) => {
     })
 });
 
-app.post('/getSimilarArtists', async (req, res) => {
+app.get('/getSimilarArtists', async (req, res) => {
     const { music_genre } = req.query.genre;
     fetch("/../db-api/search_genre.php", {
         method: "POST",
