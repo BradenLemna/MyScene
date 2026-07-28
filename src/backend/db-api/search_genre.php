@@ -9,11 +9,10 @@ require __DIR__ . "/db.php";
 $data     = json_decode(file_get_contents("php://input"), true);
 $genre    = $data["music_genre"] ?? "";
 
-$stmt = $conn->prepare("SELECT * FROM Artists WHERE music_genre = ?");
-$stmt->bind_param("s", $genre);
-$stmt->execute();
+$stmt = $pdo->prepare("SELECT * FROM Artists WHERE music_genre = ?");
+$stmt->execute([$genre]);
+$result = $stmt->fetch();
 
-$result = $stmt->get_result();
 $artists = [];
 
 while($row = $result->fetch_assoc()) {
@@ -26,6 +25,6 @@ if(empty($artists)) {
     echo json_encode(["artists" => $artists]);
 }
 
-$stmt->close();
-$conn->close();
+$stmt->closeCursor();
+$pdo = null;
 ?>

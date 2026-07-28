@@ -6,10 +6,10 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 require __DIR__ . "/db.php";
 
-$stmt = $conn->prepare("SELECT * FROM Artists WHERE is_featured = 1");
+$stmt = $pdo->prepare("SELECT * FROM Artists WHERE is_featured = 1");
 $stmt->execute();
 
-$result = $stmt->get_result();
+$result = $stmt->fetch();
 $featured_artists = [];
 
 while($row = $result->fetch_assoc()) {
@@ -18,6 +18,6 @@ while($row = $result->fetch_assoc()) {
 
 echo json_encode(["featured_artists" => $featured_artists]);
 
-$stmt->close();
-$conn->close();
+$stmt->closeCursor();
+$pdo = null;
 ?>

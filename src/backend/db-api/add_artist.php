@@ -23,19 +23,17 @@ if(empty($artist_name) || empty($location_city) || empty($location_region) || em
     exit;
 }
 
-$stmt = $conn->prepare("
+$stmt = $pdo->prepare("
     INSERT INTO Artists (artist_name, location_city, location_region, music_genre, insta_handle, image_src)
     VALUES (?, ?, ?, ?, ?, ?)
 ");
 
-$stmt->bind_param("ssssss",
-    $artist_name,
-    $location_city,
-    $location_region,
-    $music_genre,
-    $insta_handle,
-    $image_src
-);
+$stmt->bindParam(1, $artist_name);
+$stmt->bindParam(2, $location_city);
+$stmt->bindParam(3, $location_region);
+$stmt->bindParam(4, $music_genre);
+$stmt->bindParam(5, $insta_handle);
+$stmt->bindParam(6, $image_src);
 
 if ($stmt->execute()) {
     echo json_encode(["success" => true]);
@@ -44,6 +42,6 @@ if ($stmt->execute()) {
     echo json_encode(["error" => $stmt->error]);
 }
 
-$stmt->close();
-$conn->close();
+$stmt->closeCursor();
+$pdo = null;
 ?>
