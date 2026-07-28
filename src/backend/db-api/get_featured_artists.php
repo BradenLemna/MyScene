@@ -6,17 +6,19 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 require __DIR__ . "/db.php";
 
-$stmt = $pdo->prepare("SELECT * FROM Artists WHERE is_featured = 1");
-$stmt->execute();
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$result = $stmt->fetch();
-$featured_artists = [];
+try {
+    $stmt = $pdo->prepare("SELECT * FROM Artists WHERE is_featured = 1");
+    $stmt->execute();
 
-while($row = $result->fetch_assoc()) {
-    $featured_artists[] = $row;
+    $featured_artists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    echo json_encode(["featured_artists" => $featured_artists]);
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
 }
-
-echo json_encode(["featured_artists" => $featured_artists]);
 
 $stmt->closeCursor();
 $pdo = null;
