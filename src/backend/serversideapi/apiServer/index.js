@@ -134,11 +134,28 @@ app.get('/getFeaturedArtists', async (req, res) => {
         headers: {
             "Content-Type": "application/json"
         }
-    }).then(response => response.json())
-    .then(data => {
-        res.json({ featured_artists: data.featured_artists });
     })
+    .then(async response => {
+        const contentType = response.headers.get("content-type");
+        
+        // Check if response is actually JSON
+        if (!response.ok || !contentType || !contentType.includes("application/json")) {
+            const errorText = await response.text();
+            console.error("PHP Server Error Response:", errorText);
+            throw new Error(`PHP server returned non-JSON response.`);
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        res.json({ featured_artists: data.featured_artists || [] });
+    })
+    .catch(err => {
+        console.error("Fetch failed:", err.message);
+        res.status(500).json({ error: "Failed to fetch featured artists from backend." });
+    });
 });
+
 
 app.get('/getSimilarArtists', async (req, res) => {
     const { music_genre } = req.query.genre;
