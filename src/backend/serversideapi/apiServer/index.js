@@ -25,6 +25,8 @@ const app = express();
 app.use(cors(corsOptions));
 const port = 3000;
 
+const apiAddress = 'http://apiserver.lan'; // Replace with the actual address of your API server
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
@@ -67,7 +69,7 @@ app.get('/getGenre', async (req, res) => {
 
 app.post('/add_artist', async (req, res) => {
     const { artist_name, location_city, location_region, music_genre, insta_handle } = req.body;
-    fetch("./../db-api/add_artist.php", {
+    fetch(`${apiAddress}/add_artist.php`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -95,7 +97,7 @@ app.post('/add_artist', async (req, res) => {
 
 app.post('/search_genre', async (req, res) => {
     const { music_genre } = req.body;
-    fetch("./../db-api/search_genre.php", {
+    fetch(`${apiAddress}/search_genre.php`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -111,7 +113,7 @@ app.post('/search_genre', async (req, res) => {
 
 app.post('/verify_user', async (req, res) => {
     const { username, password } = req.body;
-    fetch("./../db-api/verify_user.php", {
+    fetch(`${apiAddress}/verify_user.php`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -127,7 +129,7 @@ app.post('/verify_user', async (req, res) => {
 });
 
 app.get('/getFeaturedArtists', async (req, res) => {
-    fetch("./../db-api/get_featured_artists.php", {
+    fetch(`${apiAddress}/get_featured_artists.php`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -140,7 +142,7 @@ app.get('/getFeaturedArtists', async (req, res) => {
 
 app.get('/getSimilarArtists', async (req, res) => {
     const { music_genre } = req.query.genre;
-    fetch("./../db-api/search_genre.php", {
+    fetch(`${apiAddress}/search_genre.php`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
