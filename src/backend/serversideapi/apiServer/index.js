@@ -126,7 +126,7 @@ app.post('/verify_user', async (req, res) => {
     })
 });
 
-app.post('/getFeaturedArtists', async (req, res) => {
+app.get('/getFeaturedArtists', async (req, res) => {
     fetch("/../db-api/get_featured_artists.php", {
         method: "POST",
         headers: {
