@@ -39,6 +39,13 @@ export async function getGenre(artist) // Calls the server to get the genre of t
     return data.genre
 }
 
+export async function getSimilarArtists(genre) // Calls the server to get the similar artists of the given genre
+{
+    const response = await fetch('https://api.myscene.live/getSimilarArtists' + '?genre=' + encodeURIComponent(genre))
+    const data = await response.json()
+    return data.artists
+}
+
 export async function getFeaturedArtists() // Calls the server to get the featured artists
 {
     const response = await fetch('https://api.myscene.live/getFeaturedArtists')

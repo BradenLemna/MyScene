@@ -137,3 +137,19 @@ app.post('/getFeaturedArtists', async (req, res) => {
         res.json({ featured_artists: data.featured_artists });
     })
 });
+
+app.post('/getSimilarArtists', async (req, res) => {
+    const { music_genre } = req.body;
+    fetch("/../db-api/search_genre.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            music_genre: music_genre
+        })
+    }).then(response => response.json())
+    .then(data => {
+        res.json({ artists: data.artists });
+    })
+});
