@@ -8,6 +8,7 @@ rm -rf ~/myscene-git
 mkdir ~/myscene-git
 rm -rf ~/myscene-api/apiServer/*
 rm -rf ~/myscene-api/apiCalls/*
+rm -rf ~/myscene-api/db-api/*
 
 git clone https://github.com/BradenLemna/MyScene.git ~/myscene-git
 

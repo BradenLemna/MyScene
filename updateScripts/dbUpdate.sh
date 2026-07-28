@@ -25,5 +25,7 @@ elif [ "$input" == "Y" ] || [ "$input" == "y" ]; then
     cp -r ~/myscene-git/schema.sql ~/myscene-db/schema.sql
 fi
 
+systemctl restart mariadb
+
 cp ~/myscene-git/updateScripts/dbUpdate.sh ~/dbUpdate.sh
 chmod +x ~/dbUpdate.sh
