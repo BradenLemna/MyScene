@@ -95,22 +95,6 @@ app.post('/add_artist', async (req, res) => {
     })
 });
 
-app.post('/search_genre', async (req, res) => {
-    const { music_genre } = req.body;
-    fetch(`${apiAddress}/search_genre.php`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            music_genre: music_genre
-        })
-    }).then(response => response.json())
-    .then(data => {
-        res.json({ artists: data.artists });
-    })
-});
-
 app.post('/verify_user', async (req, res) => {
     const { username, password } = req.body;
     fetch(`${apiAddress}/verify_user.php`, {
@@ -167,8 +151,23 @@ app.get('/getSimilarArtists', async (req, res) => {
         body: JSON.stringify({
             music_genre: music_genre
         })
-    }).then(response => response.json())
+    }).then(async response => {
+        const contentType = response.headers.get("content-type");
+        
+        // Check if response is actually JSON
+        if (!response.ok || !contentType || !contentType.includes("application/json")) {
+            const errorText = await response.text();
+            console.error("PHP Server Error Response:", errorText);
+            throw new Error(`PHP server returned non-JSON response.`);
+        }
+
+        return response.json();
+    })
     .then(data => {
         res.json({ artists: data.artists });
     })
+    .catch(err => {
+        console.error("Fetch failed:", err.message);
+        res.status(500).json({ error: "Failed to fetch similar artists from backend." });
+    });
 });
