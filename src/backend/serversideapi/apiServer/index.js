@@ -126,3 +126,14 @@ app.post('/verify_user', async (req, res) => {
     })
 });
 
+app.post('/getFeaturedArtists', async (req, res) => {
+    fetch("/../db-api/get_featured_artists.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then(response => response.json())
+    .then(data => {
+        res.json({ featured_artists: data.featured_artists });
+    })
+});
