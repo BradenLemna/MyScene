@@ -1,5 +1,5 @@
 import { setUserLocation, calculateDistance, testInRange } from "./backend/locationHandling.js";
-import { autoCompleteCity, getLatitude, getLongitude, getLocation, getGenre } from "./backend/apiCallsClientside.js";
+import * as apiCalls from "./backend/apiCallsClientside.js";
 
 // ---------- artist search ----------
 document.getElementById("searchButton").addEventListener("click", search);
@@ -12,24 +12,14 @@ async function search() {
 
     setSearchLoading(true);
     try {
-        let genre = await getGenre(input);
+        let genre = await apiCalls.getGenre(input);
 
-        const res = await fetch("https://api.myscene.live/search_genre", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                music_genre: genre
-                //prevconcerts: prevconvertList,
-                //distances: distanceList
-            })
-        });
+        console.log(genre);
 
-        let data = await res.json();
-        console.log(data);
-
-        displayArtists(data.artists);
+        const artists = await apiCalls.getSimilarArtists(genre);
+        console.log(artists);
+        displayArtists(artists);
+        
     } catch (err) {
         console.error("Search failed:", err);
         alert("Something went wrong searching for that artist. Please try again.");
@@ -103,7 +93,35 @@ function renderCitySuggestions(suggestions) {
     });
 }
 
-// Renders search results using the same chrome artist-card styling as the featured grid.
+// Renders featured artists
+async function renderFeaturedArtists() {
+    try {
+        const artists = await apiCalls.getFeaturedArtists();
+        const featuredDiv = document.getElementById("featuredArtists");
+        if (!featuredDiv) return;
+
+        featuredDiv.innerHTML = artists.map((artist, i) => `
+            <a href="frontend/viewArtist.html" class="artistBox" id="artist${i + 1}">
+                <div class="artistCard">
+                    <div class="artistImgWrap">
+                        <span class="newBadge">Featured</span>
+                        <img src="frontend/Artist Pics/${artist.artist_name.replace(/\s+/g, '')}.png" class="artistImg" alt="${artist.artist_name}"
+                            onerror="this.parentElement.classList.add('noImg'); this.remove();">
+                    </div>
+                    <div class="artistCardBody">
+                        <h3>${artist.artist_name}</h3>
+                        <div class="artistMeta"><span>${artist.music_genre}</span></div>
+                    </div>
+                </div>
+            </a>
+        `).join("");
+    } catch (err) {
+        console.error("Failed to fetch featured artists:", err);
+    }
+}
+renderFeaturedArtists();
+
+// Renders search results
 function displayArtists(artists) {
     document.getElementById("searchResults").style.display = "block";
     document.getElementById("featuredArtists").style.display = "none";
