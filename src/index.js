@@ -19,7 +19,7 @@ async function search() {
         const artists = await apiCalls.getSimilarArtists(genre);
         console.log(artists);
         displayArtists(artists);
-        
+
     } catch (err) {
         console.error("Search failed:", err);
         alert("Something went wrong searching for that artist. Please try again.");
@@ -97,7 +97,7 @@ function renderCitySuggestions(suggestions) {
 async function renderFeaturedArtists() {
     try {
         const artists = await apiCalls.getFeaturedArtists();
-        const featuredDiv = document.getElementById("featuredArtists");
+        const featuredDiv = document.getElementById("featuredArtistsGrid");
         if (!featuredDiv) return;
 
         featuredDiv.innerHTML = artists.map((artist, i) => `
