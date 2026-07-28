@@ -23,7 +23,7 @@ $options = [
 
 try {
      $pdo = new PDO($dsn, $user, $pass, $options);
-     echo "Connected successfully via PDO!";
+     // echo "Connected successfully via PDO!";
 } catch (\PDOException $e) {
      throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
