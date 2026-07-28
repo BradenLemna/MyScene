@@ -23,7 +23,7 @@ try {
 
 $artists = [];
 
-while($row = $result->fetch_assoc()) {
+foreach ($result as $row) {
     $artists[] = $row;
 }
 
