@@ -8,7 +8,7 @@ rm -rf ~/myscene-git
 mkdir ~/myscene-git
 rm -rf /var/www/myscene-api/apiServer/*
 rm -rf /var/www/myscene-api/apiCalls/*
-rm -rf /var/www/myscene-api/*.php
+rm -rf /var/www/myscene-api/db-api/*.php
 
 git clone https://github.com/BradenLemna/MyScene.git ~/myscene-git
 
@@ -17,7 +17,7 @@ cp -r ~/myscene-git/src/backend/serversideapi/apiCalls/* /var/www/myscene-api/ap
 cp -r ~/myscene-git/src/backend/db-api/* /var/www/myscene-api/db-api/
 cp ~/myscene-git/src/backend/db.php /var/www/myscene-api/db-api/db.php
 
-chmod +x /var/www/myscene-api/*.php
+chmod +x /var/www/myscene-api/db-api/*.php
 
 cp ~/myscene-git/updateScripts/apiUpdate.sh ~/apiUpdate.sh
 chmod +x ~/apiUpdate.sh
