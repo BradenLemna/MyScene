@@ -17,6 +17,8 @@ cp -r ~/myscene-git/src/backend/serversideapi/apiCalls/* ~/myscene-api/apiCalls/
 cp -r ~/myscene-git/src/backend/db-api/* ~/myscene-api/db-api/
 cp ~/myscene-git/src/backend/db.php ~/myscene-api/db-api/db.php
 
+chmod +x ~/myscene-api/db-api/*.php
+
 cp ~/myscene-git/updateScripts/apiUpdate.sh ~/apiUpdate.sh
 chmod +x ~/apiUpdate.sh
 
