@@ -9,9 +9,17 @@ require __DIR__ . "/db.php";
 $data     = json_decode(file_get_contents("php://input"), true);
 $genre    = $data["music_genre"] ?? "";
 
-$stmt = $pdo->prepare("SELECT * FROM Artists WHERE music_genre = ?");
-$stmt->execute([$genre]);
-$result = $stmt->fetch();
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+try {
+    $stmt = $pdo->prepare("SELECT * FROM Artists WHERE music_genre = ?");
+    $stmt->execute([$genre]);
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(["error" => "Database error: " . $e->getMessage()]);
+    exit;
+}
 
 $artists = [];
 
