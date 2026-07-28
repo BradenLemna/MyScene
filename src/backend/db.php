@@ -6,19 +6,25 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 // Validate that required variables are present
-$dotenv->required(["DB_HOST", "DB_NAME", "DB_USERNAME", "DB_PASSWORD"]);
+$dotenv->required(["DB_HOST", "DB_NAME", "DB_USERNAME", "DB_PASSWORD", "DB_CHARSET"]);
 
 // Access variables via $_ENV
-$conn = new mysqli(
-    $_ENV["DB_HOST"],
-    $_ENV["DB_USERNAME"],
-    $_ENV["DB_PASSWORD"],
-    $_ENV["DB_NAME"]
-);
+$host = $_ENV["DB_HOST"];
+$db = $_ENV["DB_NAME"];
+$user = $_ENV["DB_USERNAME"];
+$pass = $_ENV["DB_PASSWORD"];
+$charset = $_ENV["DB_CHARSET"];
 
-if ($conn->connect_error) {
-    http_response_code(500);
-    die(json_encode(["error" => "Connection failed: " . $conn->connect_error]));
+$dsn = "mysql:host=$host;dbname=$db;charset=$charset;port=3306";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+];
+
+try {
+     $pdo = new PDO($dsn, $user, $pass, $options);
+     echo "Connected successfully via PDO!";
+} catch (\PDOException $e) {
+     throw new \PDOException($e->getMessage(), (int)$e->getCode());
 }
-// echo "Connected successfully to database."
 ?>
