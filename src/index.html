@@ -105,88 +105,7 @@ Description: Homepage for MyScene showcasing smaller local artists.
       <div class="sectionHead">
         <h2>Featured Artists</h2>
       </div>
-      <div class="artistGrid" id="row1">
-        <a href="frontend/viewArtist.html" class="artistBox" id="artist1">
-          <div class="artistCard">
-            <div class="artistImgWrap">
-              <span class="newBadge">Featured</span>
-              <img src="frontend/Artist Pics/AuntieAircraft.png" class="artistImg" alt="Auntie Aircraft"
-                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
-            </div>
-            <div class="artistCardBody">
-              <h3>Auntie Aircraft</h3>
-              <div class="artistMeta"><span>Rock</span></div>
-            </div>
-          </div>
-        </a>
-
-        <div class="artistBox" id="artist2">
-          <div class="artistCard">
-            <div class="artistImgWrap">
-              <img src="frontend/Artist Pics/Ratboys.png" class="artistImg" alt="Ratboys"
-                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
-            </div>
-            <div class="artistCardBody">
-              <h3>Ratboys</h3>
-              <div class="artistMeta"><span>Indie</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="artistBox" id="artist3">
-          <div class="artistCard">
-            <div class="artistImgWrap">
-              <img src="frontend/Artist Pics/Echo Eden and the Dreamers.png" class="artistImg" alt="Echo Eden and the Dreamers"
-                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
-            </div>
-            <div class="artistCardBody">
-              <h3>Echo Eden and the Dreamers</h3>
-              <div class="artistMeta"><span>Punk</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="artistGrid" id="row2" style="margin-top:1.4rem;">
-        <div class="artistBox" id="artist4">
-          <div class="artistCard">
-            <div class="artistImgWrap">
-              <img src="frontend/Artist Pics/BigFatCow.png" class="artistImg" alt="Big Fat Cow"
-                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
-            </div>
-            <div class="artistCardBody">
-              <h3>Big Fat Cow</h3>
-              <div class="artistMeta"><span>Country</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="artistBox" id="artist5">
-          <div class="artistCard">
-            <div class="artistImgWrap">
-              <img src="frontend/Artist Pics/FrontPorch.png" class="artistImg" alt="Front Porch"
-                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
-            </div>
-            <div class="artistCardBody">
-              <h3>Front Porch</h3>
-              <div class="artistMeta"><span>Country</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="artistBox" id="artist6">
-          <div class="artistCard">
-            <div class="artistImgWrap">
-              <img src="frontend/Artist Pics/Oakwood.png" class="artistImg" alt="Oakwood"
-                   onerror="this.parentElement.classList.add('noImg'); this.remove();">
-            </div>
-            <div class="artistCardBody">
-              <h3>Oakwood</h3>
-              <div class="artistMeta"><span>Alt Rock</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="artistGrid" id="featuredArtistsGrid"></div>
     </section>
 
     <!-- Search results (shown in place of Featured Artists + map when a search runs) -->
@@ -230,7 +149,7 @@ Description: Homepage for MyScene showcasing smaller local artists.
       <h3 id="modalTitle">Artist name</h3>
       <div class="modalTags" id="modalTags"></div>
       <p id="modalBio"></p>
-      <button class="chromebtn pink">View Full Profile</button>
+      <button class="btn pink">View Full Profile</button>
     </div>
   </div>
 
