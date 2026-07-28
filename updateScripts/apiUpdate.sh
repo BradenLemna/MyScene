@@ -6,7 +6,7 @@ echo "Running update script"
 
 rm -rf ~/myscene-git
 mkdir ~/myscene-git
-rm -rf /var/www/myscene-api/apiServer/*
+rm -rf /var/www/myscene-api/apiServer/index.js
 rm -rf /var/www/myscene-api/apiCalls/*
 rm -rf /var/www/myscene-api/db-api/*.php
 
