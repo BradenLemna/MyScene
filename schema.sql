@@ -14,7 +14,8 @@ CREATE TABLE Artists (
     latitude FLOAT,
     music_genre VARCHAR(20) NOT NULL,
     insta_handle VARCHAR(50),
-    image_src VARCHAR(60)
+    image_src VARCHAR(60),
+    is_featured BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE Users (
@@ -32,12 +33,12 @@ INSERT INTO Users VALUES ("kcudzich", "45678");
 INSERT INTO Users VALUES ("kitkat", "56789");
 INSERT INTO Users VALUES ("katsu18", "67890");
 
-INSERT INTO Artists VALUES (NULL, "The Belladonnas", "Fayetteville", "AR", NULL, NULL, "Rock", "@thebelladonnasband", "belladonnas.jpg");
-INSERT INTO Artists VALUES (NULL, "Mount Comfort", "Fayetteville", "AR", NULL, NULL, "Indie", "@mt.comfort", "belladonnas.jpg");
-INSERT INTO Artists VALUES (NULL, "Echo Eden and the Dreamers", "Fayetteville", "AR", NULL, NULL, "Punk", "@echoedenandthedreamers", "Echo Eden and the Dreamers.png");
-INSERT INTO Artists VALUES (NULL, "Keathley", "Oklahoma City", "OK", NULL, NULL, "Indie", "@keathley_burningbras", "Echo Eden and the Dreamers.png");
-INSERT INTO Artists VALUES (NULL, "Resting", "Springdale", "AR", NULL, NULL, "Alternative Rock", "@resting.zzz", "Echo Eden and the Dreamers.png");
-INSERT INTO Artists VALUES (NULL, "Ozark Riviera", "Fayetteville", "AR", NULL, NULL, "Indie", "@ozark.riviera", NULL);
-INSERT INTO Artists VALUES (NULL, "Burn Absolute", "Tampa", "FL", NULL, NULL, "Metal", "@burnabsolute", "burnabsolute.png");
-INSERT INTO Artists VALUES (NULL, "Dawn of Ascension", "El Dorado", "AR", NULL, NULL, "Metal", "@dawnofascensionband", "dawnofascensionband.png");
-INSERT INTO Artists VALUES (NULL, "Ted Hammig and the Campaign", "Fayetteville", "AR", NULL, NULL, "Rock", "@tedhammigandthecampaign", NULL);
+INSERT INTO Artists VALUES (NULL, "The Belladonnas", "Fayetteville", "AR", NULL, NULL, "Rock", "@thebelladonnasband", "belladonnas.jpg", TRUE);
+INSERT INTO Artists VALUES (NULL, "Mount Comfort", "Fayetteville", "AR", NULL, NULL, "Indie", "@mt.comfort", "belladonnas.jpg", TRUE);
+INSERT INTO Artists VALUES (NULL, "Echo Eden and the Dreamers", "Fayetteville", "AR", NULL, NULL, "Punk", "@echoedenandthedreamers", "Echo Eden and the Dreamers.png", TRUE);
+INSERT INTO Artists VALUES (NULL, "Keathley", "Oklahoma City", "OK", NULL, NULL, "Indie", "@keathley_burningbras", "Echo Eden and the Dreamers.png", TRUE);
+INSERT INTO Artists VALUES (NULL, "Resting", "Springdale", "AR", NULL, NULL, "Alternative Rock", "@resting.zzz", "Echo Eden and the Dreamers.png", TRUE);
+INSERT INTO Artists VALUES (NULL, "Ozark Riviera", "Fayetteville", "AR", NULL, NULL, "Indie", "@ozark.riviera", NULL, TRUE);
+INSERT INTO Artists VALUES (NULL, "Burn Absolute", "Tampa", "FL", NULL, NULL, "Metal", "@burnabsolute", "burnabsolute.png", TRUE);
+INSERT INTO Artists VALUES (NULL, "Dawn of Ascension", "El Dorado", "AR", NULL, NULL, "Metal", "@dawnofascensionband", "dawnofascensionband.png", TRUE);
+INSERT INTO Artists VALUES (NULL, "Ted Hammig and the Campaign", "Fayetteville", "AR", NULL, NULL, "Rock", "@tedhammigandthecampaign", NULL, TRUE);
