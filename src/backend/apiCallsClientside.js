@@ -50,7 +50,7 @@ export async function getFeaturedArtists() // Calls the server to get the featur
 {
     const response = await fetch('https://api.myscene.live/getFeaturedArtists')
     const data = await response.json()
-    return data.artists
+    return data.featured_artists
 }
 
 export async function getArtistInfo(artist) // Calls the server to get the artist info of the given artist
