@@ -13,6 +13,7 @@ async function search() {
     setSearchLoading(true);
     try {
         let genre = await apiCalls.getGenre(input);
+        genre = genre.charAt(0).toUpperCase() + genre.slice(1); // Capitalize first letter
 
         console.log(genre);
 

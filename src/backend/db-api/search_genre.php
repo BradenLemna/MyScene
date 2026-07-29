@@ -12,8 +12,8 @@ $genre    = $data["music_genre"] ?? "";
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 try {
-    $stmt = $pdo->prepare("SELECT * FROM Artists WHERE music_genre = ?");
-    $stmt->execute([$genre]);
+    $stmt = $pdo->prepare("SELECT * FROM Artists WHERE music_genre = :genre");
+    $stmt->execute(['genre' => $genre]);
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     http_response_code(500);
