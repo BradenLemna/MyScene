@@ -64,7 +64,7 @@ export async function getArtistAmount() // Calls the server to get the amount of
 {
     const response = await fetch('https://api.myscene.live/getArtistAmount')
     const data = await response.json()
-    return data.amount
+    return data.artistAmount
 }
 
 export async function getArtistEvents(artist) // Calls the server to get the events of the given artist
