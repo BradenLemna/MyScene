@@ -142,7 +142,7 @@ app.get('/getFeaturedArtists', async (req, res) => {
 
 
 app.get('/getSimilarArtists', async (req, res) => {
-    console.log(`Received request for similar artists with query:`, req.query);
+    console.log(`Received request for similar artists with query:`, req.query.genre, `and body:`, req.body);
     const { music_genre } = req.query.genre ? req.query : req.body; // Support both GET query and POST body
     console.log(`Received request for similar artists with genre: ${music_genre}`);
     fetch(`${apiAddress}/search_genre.php`, {
