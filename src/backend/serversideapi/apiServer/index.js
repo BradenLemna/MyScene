@@ -142,7 +142,7 @@ app.get('/getFeaturedArtists', async (req, res) => {
 
 
 app.get('/getSimilarArtists', async (req, res) => {
-    const { music_genre } = req.query.genre;
+    const { music_genre } = req.query;
     console.log(`Received request for similar artists with genre: ${music_genre}`);
     fetch(`${apiAddress}/search_genre.php`, {
         method: "POST",
@@ -165,6 +165,7 @@ app.get('/getSimilarArtists', async (req, res) => {
         return response.json();
     })
     .then(data => {
+        console.log(`Received data for similar artists:`, data);
         res.json({ artists: data.artists });
     })
     .catch(err => {
