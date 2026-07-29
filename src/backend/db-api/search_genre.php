@@ -8,7 +8,6 @@ require __DIR__ . "/db.php";
 
 $data     = json_decode(file_get_contents("php://input"), true);
 $genre    = $data['music_genre'] ?? "";
-print_r($genre);
 
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
