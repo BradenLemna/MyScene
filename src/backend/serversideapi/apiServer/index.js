@@ -174,3 +174,31 @@ app.get('/getSimilarArtists', async (req, res) => {
         res.status(500).json({ error: "Failed to fetch similar artists from backend." });
     });
 });
+
+app.get('/getArtistInfo', async (req, res) => {
+    const { artist } = req.query;
+    fetch(`${apiAddress}/get_artist_info.php`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            artist_name: artist
+        })
+    }).then(response => response.json())
+    .then(data => {
+        res.json({ artistInfo: data.artistInfo });
+    })
+});
+
+app.get('/getArtistAmount', async (req, res) => {
+    fetch(`${apiAddress}/get_artist_amount.php`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        }
+    }).then(response => response.json())
+    .then(data => {
+        res.json({ artistAmount: data.artistAmount });
+    })
+});
