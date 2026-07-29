@@ -102,7 +102,7 @@ async function renderFeaturedArtists() {
         if (!featuredDiv) return;
 
         featuredDiv.innerHTML = artists.map((artist, i) => `
-            <a href="frontend/viewArtist.html" class="artistBox" id="artist${i + 1}">
+            <div role="button" class="artistBox" data-artist-index="${i}" tabindex="0" aria-label="View ${artist.artist_name}">
                 <div class="artistCard">
                     <div class="artistImgWrap">
                         <span class="newBadge">Featured</span>
@@ -114,8 +114,17 @@ async function renderFeaturedArtists() {
                         <div class="artistMeta"><span>${artist.music_genre}</span></div>
                     </div>
                 </div>
-            </a>
+            </div>
         `).join("");
+
+        featuredDiv.querySelectorAll(".artistBox").forEach(box => {
+            const artist = artists[box.dataset.artistIndex];
+            const open = () => openArtistModal(artist);
+            box.addEventListener("click", open);
+            box.addEventListener("keydown", e => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
+            });
+        });
     } catch (err) {
         console.error("Failed to fetch featured artists:", err);
     }
