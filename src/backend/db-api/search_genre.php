@@ -8,8 +8,7 @@ require __DIR__ . "/db.php";
 
 $data     = json_decode(file_get_contents("php://input"), true);
 $genre    = $data['music_genre'] ?? "";
-echo json_encode(["genre" => $genre]);
-echo json_encode(["message" => "Searching for artists in genre: $genre"]);
+print_r($genre);
 
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
