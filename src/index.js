@@ -36,6 +36,30 @@ function setSearchLoading(isLoading) {
     btn.classList.toggle("isLoading", isLoading);
 }
 
+function getArtistAmount() {
+    apiCalls.getArtistAmount()
+        .then(amount => {
+            console.log("Total artists in database:", amount);
+        })
+        .catch(err => {
+            console.error("Failed to get artist amount:", err);
+        });
+    
+    const statArtists = document.getElementById("statArtists");
+    if (statArtists) {
+        apiCalls.getArtistAmount()
+            .then(amount => {
+                statArtists.textContent = amount;
+            })
+            .catch(err => {
+                console.error("Failed to get artist amount:", err);
+            });
+    }
+}
+getArtistAmount();
+
+
+
 document.getElementById("radiusEnterButton").addEventListener("click", function() {
     const radiusInput = document.getElementById("radiusSearch").value;
     const radius = parseFloat(radiusInput); // Convert string input to a number (float)

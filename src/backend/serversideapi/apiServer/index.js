@@ -201,4 +201,6 @@ app.get('/getArtistAmount', async (req, res) => {
     .then(data => {
         res.json({ artistAmount: data.artistAmount });
     })
+
+    console.log(`Received request for artist amount. Responding with:`, data);
 });
