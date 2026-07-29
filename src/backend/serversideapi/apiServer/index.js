@@ -142,7 +142,6 @@ app.get('/getFeaturedArtists', async (req, res) => {
 
 
 app.get('/getSimilarArtists', async (req, res) => {
-    console.log(`Received request for similar artists with query:`, req.query.genre, `and body:`, req.body);
     const { genre } = req.query;
     console.log(`Received request for similar artists with genre: ${genre}`);
     fetch(`${apiAddress}/search_genre.php`, {
@@ -199,7 +198,6 @@ app.get('/getArtistAmount', async (req, res) => {
         }
     }).then(response => response.json())
     .then(data => {
-        console.log(`Received request for artist amount. Responding with:`, data.artistAmount);
         res.json({ artistAmount: data.artistAmount });
     })
 });
