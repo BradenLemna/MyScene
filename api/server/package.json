@@ -1,0 +1,19 @@
+{
+  "name": "myscene-api-server",
+  "version": "1.1.0",
+  "description": "MyScene API server — proxies LocationIQ/LastFM lookups and the MyScene PHP db-api endpoints for the frontend, keeping all API keys server-side.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

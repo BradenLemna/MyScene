@@ -1,6 +1,76 @@
 # MyScene
 This repository is a continuation of the 2026 HogHacks Project "MyScene". This repository will have more functionality and improved implementation on already implemented features.
 
+## Repository Layout
+
+```
+myscene/
+├── public/            # Web root — the only part served to browsers
+│   ├── index.html     # Homepage
+│   ├── style.css
+│   ├── js/            # Client-side scripts (api.js wraps all API calls)
+│   ├── pages/         # login, addArtist, viewArtist
+│   └── assets/        # icons/ and artist images/
+├── api/               # Server-side only — never served to browsers
+│   ├── server/        # Node/Express API (proxies LocationIQ/LastFM + db-api)
+│   └── db/            # PHP db-api endpoints (talk to MySQL)
+├── scripts/           # Deployment: dbUpdate.sh, webUpdate.sh, apiUpdate.sh, update.sh
+├── schema.sql         # Database schema
+└── .env.example       # DB credentials template for the PHP db-api
+```
+
+## Run
+
+### Local development
+
+```bash
+./install.sh   # system packages, Composer + npm deps, local MariaDB + .env files
+```
+
+Then start three processes (three terminals) and open `http://localhost:8000/`:
+
+```bash
+php -S localhost:8080 -t api/db   # PHP db-api (talks to MySQL)
+cd api/server && npm start        # Node API on http://localhost:3000
+php -S localhost:8000 -t public   # Website
+```
+
+The pages default to the production API (`https://api.myscene.live`). To use
+the local Node API instead, set `window.MYSCENE_API_BASE = 'http://localhost:3000'`
+in the page before the site scripts load (see `public/js/api.js`).
+
+*Geocoding/genre features need upstream API keys — fill in
+`LOCATIONIQ_API_KEY` / `LASTFM_API_KEY` in `api/server/.env` (see
+`api/server/.env.example`).*
+
+### Server deployment (`scripts/`)
+
+All deploy scripts are idempotent — they fully set up a fresh machine and
+only update an existing one. They need root or passwordless sudo and work
+with or without systemd. Run `db` before `api` (the api step picks up the DB
+credentials from `~/myscene-db/.env`).
+
+| Script | Run on | What it does |
+| ------ | ------ | ------------ |
+| `scripts/dbUpdate.sh` | DB host | Installs/starts MariaDB, imports `schema.sql` (fresh install only — existing data is never touched), creates the `myscene` MySQL user and writes `~/myscene-db/.env` |
+| `scripts/webUpdate.sh` | web host | Installs/starts nginx, deploys `public/` to `/var/www/html` |
+| `scripts/apiUpdate.sh` | API host | Installs Node/pm2/Apache/PHP, deploys the Node API to `/var/www/myscene-api` (pm2) and the PHP db-api to `/var/www/myscene-api/db-api` (Apache), seeds any missing `.env`, restarts services and health-checks the full chain |
+| `scripts/update.sh` | one machine | Runs `db` → `web` → `api` in order for a single-host setup |
+
+Useful flags:
+
+```bash
+./scripts/dbUpdate.sh FullUpdate     # drop + rebuild the database (asks first; -y to skip)
+MYSCENE_API_BASE="http://ip:3000" ./scripts/webUpdate.sh   # pin the site to an API server
+MYSCENE_REPO_URL="git@github.com:you/myscene.git" ./scripts/update.sh   # private mirror
+```
+
+Notes:
+
+- Existing `.env` files are **never** overwritten by an update.
+- On a single host, nginx keeps port 80 and the db-api vhost moves to 8080 automatically.
+- `update.sh` pins the deployed site to the local Node API (`http://<server-ip>:3000`) so a single machine runs the whole stack.
+
 # Old README
 ```
 # Hoghacks-2026

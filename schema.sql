@@ -15,12 +15,19 @@ CREATE TABLE Artists (
     music_genre VARCHAR(20) NOT NULL,
     insta_handle VARCHAR(50),
     image_src VARCHAR(60),
-    is_featured BOOLEAN DEFAULT FALSE
+    is_featured BOOLEAN DEFAULT FALSE,
+
+    -- add_artist.php checks for existing names and answers 409; this unique
+    -- key makes that check race-proof against concurrent inserts.
+    CONSTRAINT uq_artists_name UNIQUE (artist_name)
 );
 
 CREATE TABLE Users (
     username VARCHAR(20) NOT NULL,
-    user_password VARCHAR(20) NOT NULL,
+    -- 255 chars: bcrypt hashes are 60 characters. verify_user.php upgrades
+    -- legacy plaintext rows to bcrypt on first login, which fails/truncates
+    -- in a VARCHAR(20) column.
+    user_password VARCHAR(255) NOT NULL,
 
     PRIMARY KEY (username, user_password)
 );

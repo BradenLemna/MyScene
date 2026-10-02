@@ -1,0 +1,3 @@
+# public/ is the web root — index.html sits at its top level, so no
+# rewrite is needed. (The old root .htaccess redirected / -> /src/,
+# which pointed at the pre-rework layout.)

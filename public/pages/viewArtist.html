@@ -1,0 +1,103 @@
+<!--
+File Name: viewArtist.html
+Initial Implementation: Shayne Thompson, @whisperingcoder (Github)
+Continued Development: Braden Lemna, @BradenLemna (Github)
+Description: This is the dynamic View Artist page. Artist is taken from the
+?artist= query parameter; content is loaded from the MyScene API.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Artist profile on MyScene — concerts, genre, and location.">
+  <meta name="theme-color" content="#08010f">
+  <title>Artist (MyScene)</title>
+  <link rel="icon" type="image/png" href="../assets/icons/mySceneLogo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body id="idkyet">
+
+  <a class="skipLink" href="#main">Skip to content</a>
+  <div class="starfield" aria-hidden="true"></div>
+
+  <header>
+    <nav class="nav" aria-label="Main">
+      <div class="navLeft">
+        <a class="btn ghost" href="../index.html">&larr; Back to MyScene</a>
+      </div>
+
+      <div class="logoContainer">
+        <a href="../index.html" class="brand" aria-label="MyScene home">
+          <img src="../assets/icons/mySceneLogo.png" class="logo" id="smallLogo" alt=""
+              onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
+        </a>
+      </div>
+
+      <div class="navRight">
+        <a class="btn pink" href="login.html">Log In</a>
+      </div>
+
+      <button class="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+
+      <div class="navMenu" id="navMenu">
+        <a class="btn ghost" href="../index.html">&larr; Back to MyScene</a>
+        <a class="btn pink" href="login.html">Log In</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div id="artistHeader" data-reveal>
+      <img id="artistPic" alt=""
+           onerror="this.style.display='none';">
+      <div id="artistInfo">
+        <h2 id="artistName">Loading&hellip;</h2>
+        <p id="artistGenre"></p>
+        <p id="artistLocation"></p>
+        <p id="artistInsta"></p>
+      </div>
+
+      <div id="artistButtons">
+        <button id="favArtist" class="btn pink" type="button">&hearts; Fav Artist</button>
+        <button id="viewSimilar" class="btn cyan" type="button">View Similar</button>
+      </div>
+    </div>
+
+    <div id="artistNotFound" class="emptyState" style="display:none; max-width:1000px; margin:3rem auto;">
+      We couldn&rsquo;t find that artist. <a href="../index.html" style="color:var(--cyan);">Back to MyScene</a>
+    </div>
+
+    <div id="artistStats" data-reveal>
+      <div class="statBox">
+        <h2>Previous Concerts</h2>
+        <ul class="concertList" id="previousConcerts"></ul>
+      </div>
+
+      <div class="statBox">
+        <h2>Upcoming Concerts</h2>
+        <ul class="concertList" id="upcomingConcerts"></ul>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/ui.js"></script>
+  <script type="module" src="../js/viewArtist.js"></script>
+
+  <footer>
+    <div class="footerDivider"></div>
+    <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+  </footer>
+
+</body>
+</html>
