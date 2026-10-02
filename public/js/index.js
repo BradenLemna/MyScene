@@ -237,10 +237,12 @@ input.addEventListener('keyup', function() {
     const query = this.value;
     timer = setTimeout(() => {
         if (query.length > 2) {
-            autoCompleteCity(query).then(suggestions => {
-                console.log(suggestions);
-                renderCitySuggestions(suggestions);
-            });
+            apiCalls.autoCompleteCity(query)
+                .then(renderCitySuggestions)
+                .catch(err => {
+                    console.error("City autocomplete failed:", err);
+                    renderCitySuggestions([]);
+                });
         } else {
             renderCitySuggestions([]);
         }
@@ -459,6 +461,8 @@ document.getElementById("viewProfileButton")?.addEventListener("click", () => {
 // Global variables
 let map = null; // Leaflet map instance (Needed to access in multiple functions)
 let userMarker = null; // User location circle marker (Needed to bring the marker to the front after adding the radius circle)
+let artistMarkers = null; // Leaflet layer group holding the nearby-artist markers
+let nearbyRequestId = 0; // Drops stale responses when the radius/city changes quickly
 
 // Store user location
 let userLatitude = null;
@@ -519,6 +523,33 @@ function initializeMap()
         opacity: 1,
         fillOpacity: 0.8
     }).addTo(map);
+
+    artistMarkers = L.layerGroup().addTo(map);
+}
+
+// Plot every artist within `radius` miles of the user's location.
+async function refreshNearbyArtists(radius) {
+    if (!map || !artistMarkers) return;
+    const requestId = ++nearbyRequestId;
+
+    let artists;
+    try {
+        artists = await apiCalls.getNearbyArtists(getUserLatitude(), getUserLongitude(), radius);
+    } catch (err) {
+        console.error("Failed to load nearby artists:", err);
+        return;
+    }
+    if (requestId !== nearbyRequestId) return; // a newer search superseded this one
+
+    artistMarkers.clearLayers();
+    for (const artist of artists ?? []) {
+        if (artist.latitude == null || artist.longitude == null) continue;
+        const href = `pages/viewArtist.html?artist=${encodeURIComponent(artist.artist_name)}`;
+        addMarker(artist.latitude, artist.longitude, `
+            <strong><a href="${escapeHtml(href)}">${escapeHtml(artist.artist_name)}</a></strong><br>
+            ${escapeHtml(artist.music_genre)} &bull; ${escapeHtml(artist.location_city)}, ${escapeHtml(artist.location_region)}
+        `);
+    }
 }
 
 // Initialize radius circle
@@ -540,6 +571,8 @@ function updateRadiusCircle(radius)
 
     // Zoom map to fit the radius circle
     map.fitBounds(window.radiusCircle.getBounds());
+
+    refreshNearbyArtists(radius);
 }
 
 // Update user location and recenter map
@@ -556,7 +589,7 @@ function updateUserLocation(longitude, latitude)
 // Add map marker for concert location
 function addMarker(latitude, longitude, concertInfo)
 {
-    const marker = L.marker([latitude, longitude]).addTo(map);
+    const marker = L.marker([latitude, longitude]).addTo(artistMarkers ?? map);
     marker.bindPopup(concertInfo);
 }
 
