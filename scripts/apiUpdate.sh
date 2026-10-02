@@ -109,6 +109,47 @@ port_in_use() { # $1 = TCP port on localhost
     return 1
 }
 
+# True when TCP port $1 is held by something OTHER than Apache. Apache holding
+# port 80 itself (a previous run in port-80 mode) must not count as "busy",
+# otherwise the vhost would flip to 8080 on every second run.
+port_busy_by_other() { # $1 = TCP port
+    port_in_use "$1" || return 1
+    if have ss; then
+        ! $SUDO ss -Hltnp "sport = :$1" 2>/dev/null | grep -q '"apache2"'
+    else
+        ! svc_running apache2 apache2
+    fi
+}
+
+# Make sure ports.conf has an active "Listen <port>" line (uncommenting one
+# this script disabled earlier, or appending a new one).
+ensure_listen() { # $1 = port
+    local conf=/etc/apache2/ports.conf
+    if grep -Eq "^[[:space:]]*Listen[[:space:]]+$1[[:space:]]*$" "$conf" 2>/dev/null; then
+        return 0
+    fi
+    if grep -Eq "^# Listen $1 +# disabled by apiUpdate.sh" "$conf" 2>/dev/null; then
+        $SUDO sed -i -E "s/^# Listen $1 +# disabled by apiUpdate.sh.*$/Listen $1/" "$conf"
+    else
+        $SUDO sh -c "echo 'Listen $1' >> '$conf'"
+    fi
+}
+
+# Comment out a top-level "Listen <port>" line so Apache does not try to bind it.
+disable_listen() { # $1 = port
+    $SUDO sed -i -E "s/^[[:space:]]*Listen[[:space:]]+$1[[:space:]]*$/# Listen $1   # disabled by apiUpdate.sh (port $1 belongs to another server)/" \
+        /etc/apache2/ports.conf
+}
+
+apache_diagnostics() {
+    warn "Apache diagnostics:"
+    { have ss && $SUDO ss -ltnp 2>/dev/null | grep -E ":(80|$DB_API_PORT)[[:space:]]" ; } >&2 || true
+    if have_systemd; then
+        $SUDO journalctl -u apache2 --no-pager -n 20 >&2 2>/dev/null || true
+    fi
+    $SUDO tail -n 20 /var/log/apache2/error.log >&2 2>/dev/null || true
+}
+
 # HTTP GET that retries for up to ~15s; prints the body on success.
 wait_for_http() { # $1 = url
     local _
@@ -155,6 +196,16 @@ self_update() {
     fi
 }
 
+# --- 0. Choose the Apache port -----------------------------------------------
+# Decided before Apache is installed/started so nothing tries to grab port 80
+# while nginx (single-host setup) owns it.
+
+DB_API_PORT=80
+if have nginx || [ -f /etc/nginx/nginx.conf ] || port_busy_by_other 80; then
+    DB_API_PORT=8080
+fi
+log "PHP db-api will be served by Apache on port $DB_API_PORT."
+
 # --- 1. Dependencies ---------------------------------------------------------
 
 log "Checking dependencies..."
@@ -169,7 +220,23 @@ if ! php -m 2>/dev/null | grep -q '^pdo_mysql$'; then
     PKGS+=(php-mysql)
 fi
 if [ ${#PKGS[@]} -gt 0 ]; then
-    apt_install "${PKGS[@]}"
+    # A freshly installed apache2 package tries to start on port 80; with nginx
+    # there that start fails and can make dpkg error out. Block service starts
+    # during the install (policy-rc.d) — Apache is started in step 5 once it is
+    # configured for the right port.
+    POLICY_RC=/usr/sbin/policy-rc.d
+    BLOCKED_START=0
+    if [ "$DB_API_PORT" -ne 80 ] && [ ! -e "$POLICY_RC" ]; then
+        printf '#!/bin/sh\nexit 101\n' | $SUDO tee "$POLICY_RC" >/dev/null
+        $SUDO chmod +x "$POLICY_RC"
+        BLOCKED_START=1
+    fi
+    APT_RC=0
+    apt_install "${PKGS[@]}" || APT_RC=$?
+    if [ "$BLOCKED_START" -eq 1 ]; then
+        $SUDO rm -f "$POLICY_RC"
+    fi
+    [ "$APT_RC" -eq 0 ] || die "Package install failed"
 fi
 
 if ! have node || [ "$(node -v 2>/dev/null | sed 's/^v//' | cut -d. -f1)" -lt 18 ]; then
@@ -186,21 +253,14 @@ if ! have composer; then
     apt_install composer || warn "composer install failed — continuing without it"
 fi
 
-svc_start apache2 apache2
-log "Apache is up."
+# Apache is (re)started in step 5, after ports.conf and the vhost are set up
+# for $DB_API_PORT — starting it here would bind the stock port 80.
 
 # --- 2. Fresh repository code ------------------------------------------------
 
 fetch_repo
 [ -d "$GIT_DIR/api/server" ] || die "api/server/ not found in $GIT_DIR"
 [ -d "$GIT_DIR/api/db" ]     || die "api/db/ not found in $GIT_DIR"
-
-# Choose the port for the Apache db-api vhost (80 unless nginx owns 80).
-DB_API_PORT=80
-if have nginx || [ -f /etc/nginx/nginx.conf ] || port_in_use 80; then
-    DB_API_PORT=8080
-fi
-log "PHP db-api will be served by Apache on port $DB_API_PORT."
 
 # --- 3. Deploy the Node API server -------------------------------------------
 
@@ -301,9 +361,17 @@ $SUDO chmod 600 "$DBAPI_DIR/.env"
 # --- 5. Apache vhost for the db-api -------------------------------------------
 
 log "Configuring Apache vhost (port $DB_API_PORT)"
-if [ "$DB_API_PORT" -ne 80 ] && ! grep -q "^Listen $DB_API_PORT" /etc/apache2/ports.conf 2>/dev/null; then
-    $SUDO sh -c "echo 'Listen $DB_API_PORT' >> /etc/apache2/ports.conf"
+PORTS_SUM_BEFORE="$(md5sum /etc/apache2/ports.conf 2>/dev/null || true)"
+ensure_listen "$DB_API_PORT"
+if [ "$DB_API_PORT" -ne 80 ]; then
+    # Apache's stock ports.conf has "Listen 80". On a single host nginx owns
+    # port 80, and an Apache that still tries to bind it refuses to start at
+    # all — taking the 8080 db-api down with it. Drop that line and the
+    # stock *:80 default site.
+    disable_listen 80
+    $SUDO a2dissite 000-default >/dev/null 2>&1 || true
 fi
+PORTS_SUM_AFTER="$(md5sum /etc/apache2/ports.conf 2>/dev/null || true)"
 $SUDO tee "$DBAPI_VHOST" > /dev/null <<EOF
 <VirtualHost *:$DB_API_PORT>
     ServerName apiserver.lan
@@ -321,8 +389,32 @@ $SUDO tee "$DBAPI_VHOST" > /dev/null <<EOF
 </VirtualHost>
 EOF
 $SUDO a2ensite myscene-dbapi >/dev/null
-$SUDO apachectl configtest
-svc_reload apache2 apache2
+$SUDO apachectl configtest || { apache_diagnostics; die "Apache config test failed"; }
+
+if ! svc_running apache2 apache2; then
+    log "Starting Apache"
+    svc_start apache2 apache2
+elif [ "$PORTS_SUM_BEFORE" != "$PORTS_SUM_AFTER" ]; then
+    log "Listen ports changed — restarting Apache"
+    if have_systemd; then $SUDO systemctl restart apache2 || true; else $SUDO service apache2 restart || true; fi
+else
+    svc_reload apache2 apache2 || true
+fi
+
+# Verify Apache is really up and listening on the db-api port.
+APACHE_OK=0
+for _ in $(seq 1 10); do
+    if svc_running apache2 apache2 && port_in_use "$DB_API_PORT"; then
+        APACHE_OK=1
+        break
+    fi
+    sleep 1
+done
+if [ "$APACHE_OK" -ne 1 ]; then
+    apache_diagnostics
+    die "Apache is not listening on port $DB_API_PORT (see diagnostics above)"
+fi
+log "Apache is up on port $DB_API_PORT."
 
 # --- 6. (Re)start the Node server under pm2 -----------------------------------
 
