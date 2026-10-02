@@ -15,7 +15,7 @@ export function createApp() {
 
     app.disable('x-powered-by');
     app.use(corsMiddleware());
-    app.use(requestLogger());
+    app.use(requestLogger);
     app.use(express.json());
 
     app.get('/', (req, res) => {
