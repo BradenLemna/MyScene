@@ -70,16 +70,38 @@ function loadArtistImage(img, candidates, name) {
     img.src = list[0];
 }
 
-// Renders one concert entry. The events endpoint has no schema yet
-// (currently always returns []), so be defensive about field names.
+// "20:30:00" -> "8:30 PM"
+function formatTime(value) {
+    const match = /^(\d{2}):(\d{2})/.exec(value ?? "");
+    if (!match) return value ?? "";
+    const hours = Number(match[1]);
+    return `${hours % 12 || 12}:${match[2]} ${hours < 12 ? "AM" : "PM"}`;
+}
+
+// Event start as a local Date. A date-only "YYYY-MM-DD" string would parse as
+// UTC midnight (the previous evening in US time zones), so build it from parts;
+// shows with no time count as upcoming until the day is over.
+function eventStart(event) {
+    const date = event.event_date ?? event.date ?? null;
+    if (!date) return null;
+    const time = event.event_time ?? event.time ?? "23:59:59";
+    const parsed = new Date(`${date}T${time}`);
+    return isNaN(parsed) ? null : parsed;
+}
+
+// Renders one concert entry (fields from GET /getArtistEvents).
 function renderConcert(li, event) {
     const band = event.band ?? event.artist ?? event.artist_name ?? "";
-    const venue = event.venue ?? event.venue_name ?? event.location ?? "";
-    const when = [event.date, event.event_date, event.time].filter(Boolean).join(" — ");
+    const place = [event.location_city, event.location_region].filter(Boolean).join(", ");
+    const venue = [event.venue ?? event.venue_name ?? event.location ?? "", place].filter(Boolean).join(", ");
+    const when = [event.event_date ?? event.date, formatTime(event.event_time ?? event.time)].filter(Boolean).join(" — ");
     li.innerHTML =
         (band ? `<span class="band">${escapeHtml(band)}</span> ` : "") +
         (venue ? `&mdash; <span class="venue">${escapeHtml(venue)}</span>` : "") +
-        (when ? `<span class="when">${escapeHtml(when)}</span>` : "");
+        (when ? `<span class="when">${escapeHtml(when)}</span>` : "") +
+        (/^https?:\/\//i.test(event.ticket_url ?? "")
+            ? ` <a class="tickets" href="${escapeHtml(event.ticket_url)}" target="_blank" rel="noopener">Tickets</a>`
+            : "");
     if (!band && !venue && !when) li.innerHTML = `<span class="when">${escapeHtml(JSON.stringify(event))}</span>`;
 }
 
@@ -92,11 +114,11 @@ function renderConcerts(events) {
     const upcoming = [];
 
     for (const event of events) {
-        const rawDate = event.date ?? event.event_date ?? null;
-        const parsed = rawDate ? new Date(rawDate) : null;
-        if (parsed && !isNaN(parsed) && parsed < now) previous.push(event);
+        const start = eventStart(event);
+        if (start && start < now) previous.push(event);
         else upcoming.push(event);
     }
+    previous.reverse(); // most recent show first
 
     const fill = (listEl, items) => {
         if (items.length === 0) {
@@ -161,8 +183,7 @@ async function loadPage() {
         artist.artist_name
     );
 
-    // Concerts — the endpoint keeps a stable contract (always 200 with a list)
-    // until a real events table exists.
+    // Concerts (GET /getArtistEvents — always 200 with a list, oldest first).
     try {
         const events = await apiCalls.getArtistEvents(artist.artist_name);
         renderConcerts(Array.isArray(events) ? events : []);
