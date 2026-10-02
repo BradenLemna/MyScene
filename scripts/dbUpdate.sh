@@ -16,6 +16,9 @@
 #        - database missing        -> imports (fresh install, with seed data)
 #        - database present        -> left alone (data preserved)
 #        - FullUpdate / "Y" answer -> drops and rebuilds the database (DESTRUCTIVE)
+#      then applies every migrations/*.sql file in name order. Migrations are
+#      idempotent (CREATE ... IF NOT EXISTS, guarded UPDATEs), so they bring an
+#      existing database up to date without touching its data.
 #   4. Creates/updates a dedicated 'myscene' MySQL user (localhost + 127.0.0.1)
 #      and writes its credentials to:
 #        ~/myscene-db/.env                       (reference copy, chmod 600)
@@ -217,6 +220,16 @@ if [ "$rebuild" -eq 1 ]; then
     log "Importing schema.sql"
     $SUDO mysql < "$GIT_DIR/schema.sql"
     log "Schema imported."
+fi
+
+# --- 3b. Apply idempotent migrations -----------------------------------------
+
+if [ -d "$GIT_DIR/migrations" ]; then
+    for migration in "$GIT_DIR"/migrations/*.sql; do
+        [ -e "$migration" ] || continue
+        log "Applying migration $(basename "$migration")"
+        $SUDO mysql < "$migration" || die "Migration $(basename "$migration") failed"
+    done
 fi
 
 # Keep a reference copy next to the credentials file.
