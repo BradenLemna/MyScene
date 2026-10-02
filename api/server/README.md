@@ -46,8 +46,10 @@ The server listens on `PORT` (default 3000).
 | GET    | `/getArtistInfo`     | Single artist row (`?artist=`)                 |
 | GET    | `/getArtistAmount`   | Total number of artists                        |
 | GET    | `/getGenreList`      | Distinct genres in the database                |
-| GET    | `/getArtistEvents`   | Events for an artist (`?artist=`, empty until events exist) |
-| POST   | `/add_artist`        | Add an artist (JSON body)                      |
+| GET    | `/getArtistEvents`   | Events for an artist (`?artist=`)              |
+| GET    | `/getNearbyArtists`  | Artists near a point (`?lat=&lon=&radius=` miles, default 10) |
+| POST   | `/add_artist`        | Add an artist (JSON body; geocodes city/state when lat/lon are omitted) |
+| POST   | `/add_event`         | Add an event for an existing artist (JSON body) |
 | POST   | `/verify_user`       | Verify username/password (JSON body)           |
 
 All responses are JSON. Errors use the shape `{"error": "..."}` with an

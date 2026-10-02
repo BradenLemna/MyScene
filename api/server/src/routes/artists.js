@@ -7,8 +7,10 @@
 //   GET  /getArtistInfo?artist=...   -> { artistInfo: {...} }
 //   GET  /getArtistAmount            -> { artistAmount: number }
 //   GET  /getGenreList               -> { genres: [...] }
-//   GET  /getArtistEvents?artist=... -> { events: [] } (no events table yet)
+//   GET  /getArtistEvents?artist=... -> { events: [...] }
+//   GET  /getNearbyArtists?lat=..&lon=..&radius=.. -> { artists: [...] }
 //   POST /add_artist                 -> { success, id, message }
+//   POST /add_event                  -> { success, id, message }
 //
 // 400/404/409 answers from the PHP db-api are passed through to the client
 // with their original status (see services/dbApi.js); unreachable PHP layer
@@ -18,8 +20,16 @@ import { Router } from 'express';
 
 import { dbApi } from '../services/dbApi.js';
 import { getTopGenre } from '../services/lastFm.js';
+import { searchPlace } from '../services/locationIQ.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { floatField, requireFields, requireQuery, strField } from '../utils/validate.js';
+import {
+    floatField,
+    optionalNumberQuery,
+    requireFields,
+    requireNumberQuery,
+    requireQuery,
+    strField,
+} from '../utils/validate.js';
 
 const router = Router();
 
@@ -58,13 +68,44 @@ router.get('/getGenreList', asyncHandler(async (req, res) => {
     res.json({ genres: Array.isArray(data?.genres) ? data.genres : [] });
 }));
 
-// The database has no events table yet. Keep the contract stable for the
-// frontend by always answering 200 with an empty list; swap this for a real
-// db-api endpoint once events are added to the schema.
 router.get('/getArtistEvents', asyncHandler(async (req, res) => {
-    requireQuery(req, 'artist');
-    res.json({ events: [] });
+    const artist = requireQuery(req, 'artist');
+    const data = await dbApi.getArtistEvents(artist);
+    res.json({ events: Array.isArray(data?.events) ? data.events : [] });
 }));
+
+router.get('/getNearbyArtists', asyncHandler(async (req, res) => {
+    const latitude = requireNumberQuery(req, 'lat');
+    const longitude = requireNumberQuery(req, 'lon');
+    const radius = optionalNumberQuery(req, 'radius', 10);
+    const data = await dbApi.getNearbyArtists(latitude, longitude, radius);
+    res.json({ artists: Array.isArray(data?.artists) ? data.artists : [] });
+}));
+
+/**
+ * Best-effort geocode of "city, region" so new rows get map coordinates.
+ * Never blocks the insert: a missing LocationIQ key, no match or an upstream
+ * failure just leaves the coordinates null.
+ */
+async function geocodeOrNull(city, region) {
+    try {
+        const place = await searchPlace(`${city}, ${region}`);
+        return place ? { latitude: place.lat, longitude: place.lon } : null;
+    } catch (err) {
+        console.warn(`[myscene:api] geocoding "${city}, ${region}" failed: ${err.message}`);
+        return null;
+    }
+}
+
+/** Use the caller's coordinates when both are given, else geocode. */
+async function resolveCoordinates(body, city, region) {
+    const latitude = floatField(body, 'latitude');
+    const longitude = floatField(body, 'longitude');
+    if (latitude !== null && longitude !== null) {
+        return { latitude, longitude };
+    }
+    return (await geocodeOrNull(city, region)) ?? { latitude: null, longitude: null };
+}
 
 router.post('/add_artist', asyncHandler(async (req, res) => {
     const body = requireFields(req.body, [
@@ -74,15 +115,55 @@ router.post('/add_artist', asyncHandler(async (req, res) => {
         'music_genre',
     ]);
 
+    const city = strField(body, 'location_city');
+    const region = strField(body, 'location_region');
+    const { latitude, longitude } = await resolveCoordinates(body, city, region);
+
     const result = await dbApi.addArtist({
         artist_name: strField(body, 'artist_name'),
-        location_city: strField(body, 'location_city'),
-        location_region: strField(body, 'location_region'),
+        location_city: city,
+        location_region: region,
         music_genre: strField(body, 'music_genre'),
         insta_handle: strField(body, 'insta_handle'),
         image_src: strField(body, 'image_src'),
-        longitude: floatField(body, 'longitude'),
-        latitude: floatField(body, 'latitude'),
+        longitude,
+        latitude,
+    });
+
+    res.json(result);
+}));
+
+router.post('/add_event', asyncHandler(async (req, res) => {
+    const body = requireFields(req.body, [
+        'artist_name',
+        'venue_name',
+        'location_city',
+        'location_region',
+        'event_date',
+    ]);
+
+    const city = strField(body, 'location_city');
+    const region = strField(body, 'location_region');
+    const venue = strField(body, 'venue_name');
+
+    // Prefer the venue itself; fall back to the city centre.
+    let coords = { latitude: floatField(body, 'latitude'), longitude: floatField(body, 'longitude') };
+    if (coords.latitude === null || coords.longitude === null) {
+        coords = (await geocodeOrNull(`${venue}, ${city}`, region))
+            ?? (await geocodeOrNull(city, region))
+            ?? { latitude: null, longitude: null };
+    }
+
+    const result = await dbApi.addEvent({
+        artist_name: strField(body, 'artist_name'),
+        venue_name: venue,
+        location_city: city,
+        location_region: region,
+        event_date: strField(body, 'event_date'),
+        event_time: strField(body, 'event_time'),
+        ticket_url: strField(body, 'ticket_url'),
+        latitude: coords.latitude,
+        longitude: coords.longitude,
     });
 
     res.json(result);

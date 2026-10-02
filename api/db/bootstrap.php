@@ -132,6 +132,39 @@ function float_field(array $data, string $key): ?float
 }
 
 /**
+ * Optional calendar date in YYYY-MM-DD form. Absent/empty values become
+ * null; anything that is not a real date answers 400.
+ */
+function date_field(array $data, string $key): ?string
+{
+    $value = str_field($data, $key);
+    if ($value === '') {
+        return null;
+    }
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+    if ($date === false || $date->format('Y-m-d') !== $value) {
+        json_error('Field "' . $key . '" must be a date in YYYY-MM-DD format.', 400);
+    }
+    return $value;
+}
+
+/**
+ * Optional time of day in HH:MM or HH:MM:SS (24h) form, normalized to
+ * HH:MM:SS. Absent/empty values become null; anything else answers 400.
+ */
+function time_field(array $data, string $key): ?string
+{
+    $value = str_field($data, $key);
+    if ($value === '') {
+        return null;
+    }
+    if (!preg_match('/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/', $value, $m)) {
+        json_error('Field "' . $key . '" must be a time in HH:MM (24h) format.', 400);
+    }
+    return sprintf('%s:%s:%s', $m[1], $m[2], $m[3] ?? '00');
+}
+
+/**
  * Log a throwable server-side and answer with a generic 500.
  * Never leaks SQL details or environment information to API clients.
  */

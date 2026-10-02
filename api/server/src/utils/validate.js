@@ -46,6 +46,33 @@ export function strField(body, field) {
 }
 
 /**
+ * Required numeric query parameter. Throws a 400 when it is missing or not
+ * a finite number.
+ */
+export function requireNumberQuery(req, name) {
+    const text = requireQuery(req, name);
+    const value = Number(text);
+    if (!Number.isFinite(value)) {
+        throw new ApiError(`Query parameter "${name}" must be a number.`, 400);
+    }
+    return value;
+}
+
+/** Optional numeric query parameter; `fallback` when absent/empty. */
+export function optionalNumberQuery(req, name, fallback) {
+    const raw = req.query[name];
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    if (typeof value !== 'string' || value.trim() === '') {
+        return fallback;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        throw new ApiError(`Query parameter "${name}" must be a number.`, 400);
+    }
+    return parsed;
+}
+
+/**
  * Optional numeric field from the body: finite numbers pass through, numeric
  * strings are parsed, absent/null/empty values become null. Anything else
  * throws a 400 so the database never receives a bogus coordinate.

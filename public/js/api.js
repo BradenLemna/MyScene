@@ -22,9 +22,9 @@ const API_BASE = (typeof window !== 'undefined' && window.MYSCENE_API_BASE)
  * not ok, so callers can surface the real reason instead of crashing on
  * an undefined field.
  */
-async function apiFetch(path)
+async function apiFetch(path, options)
 {
-    const response = await fetch(API_BASE + path);
+    const response = await fetch(API_BASE + path, options);
 
     let data = null;
     try {
@@ -107,4 +107,20 @@ export async function getGenreList() // Calls the server to get the list of genr
 {
     const data = await apiFetch('/getGenreList');
     return data.genres
+}
+
+export async function getNearbyArtists(latitude, longitude, radius) // Calls the server to get artists within `radius` miles of a point
+{
+    const params = new URLSearchParams({ lat: latitude, lon: longitude, radius });
+    const data = await apiFetch('/getNearbyArtists?' + params);
+    return data.artists
+}
+
+export async function addEvent(event) // Calls the server to add an event ({artist_name, venue_name, location_city, location_region, event_date, event_time?, ticket_url?})
+{
+    return apiFetch('/add_event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(event),
+    });
 }

@@ -29,5 +29,9 @@ export const dbApi = {
     getFeaturedArtists: () => callDb('get_featured_artists.php'),
     searchGenre: (genre) => callDb('search_genre.php', { music_genre: genre }),
     getGenreList: () => callDb('get_genre_list.php'),
+    getArtistEvents: (artistName) => callDb('get_artist_events.php', { artist_name: artistName }),
+    addEvent: (payload) => callDb('add_event.php', payload),
+    getNearbyArtists: (latitude, longitude, radius) =>
+        callDb('get_nearby_artists.php', { latitude, longitude, radius }),
     verifyUser: (username, password) => callDb('verify_user.php', { username, password }),
 };
