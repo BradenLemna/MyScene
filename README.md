@@ -15,7 +15,8 @@ myscene/
 │   ├── server/        # Node/Express API (proxies LocationIQ/LastFM + db-api)
 │   └── db/            # PHP db-api endpoints (talk to MySQL)
 ├── scripts/           # Deployment: dbUpdate.sh, webUpdate.sh, apiUpdate.sh, update.sh
-├── schema.sql         # Database schema
+├── schema.sql         # Database schema (fresh installs)
+├── migrations/        # Idempotent schema changes applied to existing DBs by dbUpdate.sh
 └── .env.example       # DB credentials template for the PHP db-api
 ```
 
@@ -52,7 +53,7 @@ credentials from `~/myscene-db/.env`).
 
 | Script | Run on | What it does |
 | ------ | ------ | ------------ |
-| `scripts/dbUpdate.sh` | DB host | Installs/starts MariaDB, imports `schema.sql` (fresh install only — existing data is never touched), creates the `myscene` MySQL user and writes `~/myscene-db/.env` |
+| `scripts/dbUpdate.sh` | DB host | Installs/starts MariaDB, imports `schema.sql` (fresh install only — existing data is never touched), applies `migrations/*.sql`, creates the `myscene` MySQL user and writes `~/myscene-db/.env` |
 | `scripts/webUpdate.sh` | web host | Installs/starts nginx, deploys `public/` to `/var/www/html` |
 | `scripts/apiUpdate.sh` | API host | Installs Node/pm2/Apache/PHP, deploys the Node API to `/var/www/myscene-api` (pm2) and the PHP db-api to `/var/www/myscene-api/db-api` (Apache), seeds any missing `.env`, restarts services and health-checks the full chain |
 | `scripts/update.sh` | one machine | Runs `db` → `web` → `api` in order for a single-host setup |
