@@ -19,20 +19,34 @@
 #                                     Created from api/server/.env.example with
 #                                     sensible single-host defaults if missing.
 #   /var/www/myscene-api/db-api/.env  DB credentials read by PHP db-api
-#                                     (bootstrap.php). Seeded from
-#                                     ~/myscene-db/.env when available (written
-#                                     by dbUpdate.sh), otherwise from
-#                                     .env.example.
+#                                     (bootstrap.php). Created from, in order:
+#                                       1. --db-env FILE (copied app.env)
+#                                       2. MYSCENE_DB_HOST + MYSCENE_DB_PASSWORD
+#                                       3. ~/myscene-db/.env (single host)
+#                                       4. an interactive prompt
+#
+# Two containers (DB on its own container): the PHP db-api connects to the
+# DB container over the network. Give it the DB address + password once:
+#
+#   MYSCENE_DB_HOST=10.0.0.10 MYSCENE_DB_PASSWORD=... ./apiUpdate.sh
+#   ./apiUpdate.sh --db-env ~/app.env      # file written by dbUpdate.sh
+#
+# Explicitly given DB settings are written into an EXISTING db-api .env too
+# (only those keys; a backup is kept as .env.bak). Without them, an existing
+# .env is left untouched, so later runs need no arguments.
 #
 # Apache port: the db-api vhost uses port 80 unless nginx is installed or
-# port 80 is busy (single-host setups run the website on nginx:80), in which
+# port 80 is busy (the website runs on nginx:80 on the same host), in which
 # case it uses 8080 and a fresh Node .env points DB_API_BASE_URL there.
 #
 # Usage:
-#   ./apiUpdate.sh
+#   ./apiUpdate.sh [--db-host HOST] [--db-port PORT] [--db-password PW]
+#                  [--db-env FILE]
+#   (equivalent env vars: MYSCENE_DB_HOST, MYSCENE_DB_PORT,
+#    MYSCENE_DB_PASSWORD, MYSCENE_DB_ENV)
 #
 # Prerequisite for a fully working site: run scripts/dbUpdate.sh first (on
-# this host, or copy its ~/myscene-db/.env here).
+# the DB container, with --app-host <this container's IP>).
 # =============================================================================
 
 set -euo pipefail
@@ -196,6 +210,66 @@ self_update() {
     fi
 }
 
+usage() {
+    awk 'NR > 3 && /^# =====/ { exit } NR > 3 { sub(/^# ?/, ""); print }' "$0"
+}
+
+# Value of KEY in a root-owned .env file ('' when absent).
+env_get() { # $1 = file, $2 = key
+    $SUDO sed -n "s/^$2=//p" "$1" 2>/dev/null | tail -n1 | tr -d '\r'
+}
+
+# Set KEY=VALUE pairs in an existing .env file, keeping every other line.
+# Values are passed through the environment, so any character is safe.
+env_set() { # $1 = file, rest = KEY=VALUE ...
+    local file="$1"; shift
+    local tmp kv
+    tmp="$(mktemp /tmp/myscene-env.XXXXXX)"
+    $SUDO cat "$file" | tr -d '\r' > "$tmp"
+    for kv in "$@"; do
+        KV="$kv" KEY="${kv%%=*}" awk '
+            index($0, ENVIRON["KEY"] "=") == 1 { if (!done) print ENVIRON["KV"]; done = 1; next }
+            { print }
+            END { if (!done) print ENVIRON["KV"] }
+        ' "$tmp" > "$tmp.new"
+        mv "$tmp.new" "$tmp"
+    done
+    $SUDO cp "$file" "$file.bak"
+    $SUDO tee "$file" > /dev/null < "$tmp"
+    rm -f "$tmp"
+}
+
+# Can we open a TCP connection to host:port within 3s?
+tcp_reachable() { # $1 = host, $2 = port
+    timeout 3 bash -c "exec 3<>/dev/tcp/$1/$2" 2>/dev/null
+}
+
+# --- arguments -----------------------------------------------------------------
+
+DB_HOST_ARG="${MYSCENE_DB_HOST:-}"
+DB_PORT_ARG="${MYSCENE_DB_PORT:-}"
+DB_PASSWORD_ARG="${MYSCENE_DB_PASSWORD:-}"
+DB_ENV_ARG="${MYSCENE_DB_ENV:-}"
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --db-host)       [ $# -ge 2 ] || die "$1 needs a value"; DB_HOST_ARG="$2"; shift ;;
+        --db-host=*)     DB_HOST_ARG="${1#*=}" ;;
+        --db-port)       [ $# -ge 2 ] || die "$1 needs a value"; DB_PORT_ARG="$2"; shift ;;
+        --db-port=*)     DB_PORT_ARG="${1#*=}" ;;
+        --db-password)   [ $# -ge 2 ] || die "$1 needs a value"; DB_PASSWORD_ARG="$2"; shift ;;
+        --db-password=*) DB_PASSWORD_ARG="${1#*=}" ;;
+        --db-env)        [ $# -ge 2 ] || die "$1 needs a value"; DB_ENV_ARG="$2"; shift ;;
+        --db-env=*)      DB_ENV_ARG="${1#*=}" ;;
+        -h|--help)       usage; exit 0 ;;
+        *) die "Unknown argument: $1 (see --help)" ;;
+    esac
+    shift
+done
+if [ -n "$DB_ENV_ARG" ]; then
+    [ -f "$DB_ENV_ARG" ] || die "--db-env file not found: $DB_ENV_ARG"
+    DB_ENV_ARG="$(cd "$(dirname "$DB_ENV_ARG")" && pwd)/$(basename "$DB_ENV_ARG")"
+fi
+
 # --- 0. Choose the Apache port -----------------------------------------------
 # Decided before Apache is installed/started so nothing tries to grab port 80
 # while nginx (single-host setup) owns it.
@@ -335,28 +409,71 @@ $SUDO mkdir -p "$DBAPI_DIR"
 $SUDO rm -f "$DBAPI_DIR"/*.php
 $SUDO cp "$GIT_DIR/api/db/"*.php "$DBAPI_DIR/"
 
-if [ -f "$DBAPI_DIR/.env" ]; then
-    log "Existing $DBAPI_DIR/.env left untouched."
-elif [ -f "$HOME/myscene-db/.env" ]; then
-    log "Seeding $DBAPI_DIR/.env from ~/myscene-db/.env"
-    $SUDO tee "$DBAPI_DIR/.env" > /dev/null < "$HOME/myscene-db/.env"
-elif [ -f "$GIT_DIR/.env.example" ]; then
-    log "Creating $DBAPI_DIR/.env from .env.example — run scripts/dbUpdate.sh to provision the database!"
-    DB_PW="$(openssl rand -hex 16 2>/dev/null || head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
-    $SUDO tee "$DBAPI_DIR/.env" > /dev/null <<EOF
-DB_HOST=localhost
-DB_PORT=3306
+DBENV="$DBAPI_DIR/.env"
+
+# DB settings given explicitly on this run (flags / MYSCENE_DB_* env vars).
+EXPLICIT_DB=()
+[ -n "$DB_HOST_ARG" ]     && EXPLICIT_DB+=("DB_HOST=$DB_HOST_ARG")
+[ -n "$DB_PORT_ARG" ]     && EXPLICIT_DB+=("DB_PORT=$DB_PORT_ARG")
+[ -n "$DB_PASSWORD_ARG" ] && EXPLICIT_DB+=("DB_PASSWORD=$DB_PASSWORD_ARG")
+
+write_dbenv() { # $1 = host, $2 = port, $3 = password
+    $SUDO tee "$DBENV" > /dev/null <<EOF
+DB_HOST=$1
+DB_PORT=$2
 DB_NAME=MyScene
 DB_USERNAME=myscene
-DB_PASSWORD=$DB_PW
+DB_PASSWORD=$3
 DB_CHARSET=utf8mb4
 EOF
-    warn "Generated a placeholder password for the 'myscene' MySQL user — store it in ~/myscene-db/.env and run dbUpdate.sh."
+}
+
+if [ -n "$DB_ENV_ARG" ]; then
+    # A credentials file copied from the DB container (~/myscene-db/app.env).
+    [ -f "$DBENV" ] && $SUDO cp "$DBENV" "$DBENV.bak"
+    log "Writing $DBENV from $DB_ENV_ARG"
+    tr -d '\r' < "$DB_ENV_ARG" | $SUDO tee "$DBENV" > /dev/null
+    if [ ${#EXPLICIT_DB[@]} -gt 0 ]; then env_set "$DBENV" "${EXPLICIT_DB[@]}"; fi
+elif [ -f "$DBENV" ]; then
+    if [ ${#EXPLICIT_DB[@]} -gt 0 ]; then
+        log "Updating $(printf '%s ' "${EXPLICIT_DB[@]%%=*}")in existing $DBENV (backup: .env.bak)"
+        env_set "$DBENV" "${EXPLICIT_DB[@]}"
+    else
+        log "Existing $DBENV left untouched."
+    fi
+elif [ -n "$DB_HOST_ARG" ]; then
+    [ -n "$DB_PASSWORD_ARG" ] || die "MYSCENE_DB_HOST/--db-host given without MYSCENE_DB_PASSWORD/--db-password (it is in ~/myscene-db/app.env on the DB container)"
+    log "Creating $DBENV for the database at $DB_HOST_ARG:${DB_PORT_ARG:-3306}"
+    write_dbenv "$DB_HOST_ARG" "${DB_PORT_ARG:-3306}" "$DB_PASSWORD_ARG"
+elif [ -f "$HOME/myscene-db/.env" ]; then
+    log "Seeding $DBENV from ~/myscene-db/.env (database on this host)"
+    $SUDO tee "$DBENV" > /dev/null < "$HOME/myscene-db/.env"
+    if [ ${#EXPLICIT_DB[@]} -gt 0 ]; then env_set "$DBENV" "${EXPLICIT_DB[@]}"; fi
+elif is_tty; then
+    log "No database credentials found for the PHP db-api."
+    log "Run scripts/dbUpdate.sh --app-host <this container's IP> on the DB container; it prints them."
+    read -r -p "Database host (IP of the DB container): " in_host
+    [ -n "$in_host" ] || die "No database host given — re-run with MYSCENE_DB_HOST=<ip> MYSCENE_DB_PASSWORD=<pw>"
+    read -r -s -p "Password of the 'myscene' MySQL user: " in_pw; echo
+    [ -n "$in_pw" ] || die "No password given"
+    write_dbenv "$in_host" "${DB_PORT_ARG:-3306}" "$in_pw"
+    log "Created $DBENV"
+else
+    write_dbenv localhost "${DB_PORT_ARG:-3306}" ""
+    warn "Created $DBENV WITHOUT database credentials. Re-run with"
+    warn "  MYSCENE_DB_HOST=<DB container IP> MYSCENE_DB_PASSWORD=<pw> ./apiUpdate.sh"
+    warn "(both are in ~/myscene-db/app.env on the DB container), or run dbUpdate.sh on this host for a single-host setup."
 fi
 # PHP runs as www-data: it must be able to read the credentials, but nobody
 # else (and not over HTTP either — the vhost below denies .env requests).
-$SUDO chown www-data:www-data "$DBAPI_DIR/.env" 2>/dev/null || $SUDO chown root:root "$DBAPI_DIR/.env"
-$SUDO chmod 600 "$DBAPI_DIR/.env"
+$SUDO chown www-data:www-data "$DBENV" 2>/dev/null || $SUDO chown root:root "$DBENV"
+$SUDO chmod 600 "$DBENV"
+if [ -f "$DBENV.bak" ]; then
+    $SUDO chown root:root "$DBENV.bak" && $SUDO chmod 600 "$DBENV.bak"
+fi
+DB_HOST_EFF="$(env_get "$DBENV" DB_HOST)"
+DB_PORT_EFF="$(env_get "$DBENV" DB_PORT)"
+DB_PORT_EFF="${DB_PORT_EFF:-3306}"
 
 # --- 5. Apache vhost for the db-api -------------------------------------------
 
@@ -432,6 +549,22 @@ API_HEALTH_URL="http://127.0.0.1:3000/"
 DBAPI_HEALTH_URL="http://127.0.0.1:$DB_API_PORT/get_artist_amount.php"
 CHAIN_HEALTH_URL="http://127.0.0.1:3000/getArtistAmount"
 
+# Database reachable from this container? (PDO uses the unix socket for
+# 'localhost'; probing 127.0.0.1 is close enough for a single host.)
+DB_PROBE_HOST="$DB_HOST_EFF"
+case "$DB_PROBE_HOST" in ""|localhost) DB_PROBE_HOST=127.0.0.1 ;; esac
+log "Checking the database at $DB_PROBE_HOST:$DB_PORT_EFF..."
+if tcp_reachable "$DB_PROBE_HOST" "$DB_PORT_EFF"; then
+    log "Database port is reachable."
+elif [ "$DB_PROBE_HOST" = "127.0.0.1" ]; then
+    warn "No database on this host (DB_HOST=${DB_HOST_EFF:-<empty>}). For two containers, re-run with"
+    warn "  MYSCENE_DB_HOST=<DB container IP> MYSCENE_DB_PASSWORD=<pw> ./apiUpdate.sh"
+else
+    warn "Cannot reach $DB_PROBE_HOST:$DB_PORT_EFF. On the DB container, run"
+    warn "  ./dbUpdate.sh --app-host $(hostname -I 2>/dev/null | awk '{print $1}')"
+    warn "(it opens MariaDB to the network and grants this container access), and check the Proxmox firewall."
+fi
+
 log "Waiting for the Node API ($API_HEALTH_URL)..."
 if NODE_OK="$(wait_for_http "$API_HEALTH_URL")"; then
     log "Node API healthy: $NODE_OK"
@@ -443,7 +576,9 @@ log "Waiting for the PHP db-api ($DBAPI_HEALTH_URL)..."
 if DBAPI_OK="$(wait_for_http_post "$DBAPI_HEALTH_URL" '{}')"; then
     log "PHP db-api healthy: $DBAPI_OK"
 else
-    warn "PHP db-api not responding — check Apache (port $DB_API_PORT) and $DBAPI_DIR/.env (DB credentials)"
+    warn "PHP db-api not responding — check Apache (port $DB_API_PORT), $DBENV (DB credentials, DB_HOST=$DB_HOST_EFF)"
+    warn "and /var/log/apache2/myscene-dbapi_error.log. 'Access denied' there means the DB container has not"
+    warn "granted this container: run dbUpdate.sh --app-host <this container's IP> on the DB container."
 fi
 
 log "Waiting for the full chain ($CHAIN_HEALTH_URL)..."

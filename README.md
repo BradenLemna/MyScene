@@ -48,29 +48,69 @@ in the page before the site scripts load (see `public/js/api.js`).
 
 All deploy scripts are idempotent — they fully set up a fresh machine and
 only update an existing one. They need root or passwordless sudo and work
-with or without systemd. Run `db` before `api` (the api step picks up the DB
-credentials from `~/myscene-db/.env`).
+with or without systemd.
+
+#### Two containers (production layout)
+
+```
+ app container                               DB container
+ ┌────────────────────────────────────┐      ┌──────────────────┐
+ │ nginx :80        website (public/) │      │                  │
+ │ Node  :3000      API (pm2)         │      │ MariaDB :3306    │
+ │ Apache :8080     PHP db-api  ──────┼─────▶│                  │
+ └────────────────────────────────────┘      └──────────────────┘
+```
+
+Set up the DB container first; it prints the command for the app container.
+
+```bash
+# DB container — first time: allow the app container's IP (or a pattern like 10.0.0.%)
+./update.sh db --app-host 10.0.0.11
+
+# app container — first time: use the address + password printed above
+MYSCENE_DB_HOST=10.0.0.10 MYSCENE_DB_PASSWORD='…' ./update.sh app
+#   or copy ~/myscene-db/app.env over:  ./update.sh app --db-env app.env
+
+# later updates need no arguments (the role is detected from what is installed)
+./update.sh
+```
+
+The `db` role makes MariaDB listen on the network
+(`/etc/mysql/mariadb.conf.d/99-myscene-network.cnf`, `bind-address = 0.0.0.0`,
+override with `MYSCENE_DB_BIND`) and grants the `myscene` user only to
+localhost and the app host(s). Moving an existing app container to a new DB:
+`./update.sh app --db-host <ip>` rewrites just that key in the db-api `.env`
+(a `.env.bak` is kept).
+
+#### Single host
+
+```bash
+./update.sh all   # db → web → api on one machine; the site is pinned to http://<server-ip>:3000
+```
+
+#### Scripts
 
 | Script | Run on | What it does |
 | ------ | ------ | ------------ |
-| `scripts/dbUpdate.sh` | DB host | Installs/starts MariaDB, imports `schema.sql` (fresh install only — existing data is never touched), applies `migrations/*.sql`, creates the `myscene` MySQL user and writes `~/myscene-db/.env` |
-| `scripts/webUpdate.sh` | web host | Installs/starts nginx, deploys `public/` to `/var/www/html` |
-| `scripts/apiUpdate.sh` | API host | Installs Node/pm2/Apache/PHP, deploys the Node API to `/var/www/myscene-api` (pm2) and the PHP db-api to `/var/www/myscene-api/db-api` (Apache), seeds any missing `.env`, restarts services and health-checks the full chain |
-| `scripts/update.sh` | one machine | Runs `db` → `web` → `api` in order for a single-host setup |
+| `scripts/dbUpdate.sh` | DB container | Installs/starts MariaDB, imports `schema.sql` (fresh install only — existing data is never touched), applies `migrations/*.sql`, creates the `myscene` MySQL user (localhost + `--app-host`s), opens MariaDB to the network for app hosts, writes `~/myscene-db/.env` and `~/myscene-db/app.env` |
+| `scripts/webUpdate.sh` | app container | Installs/starts nginx, deploys `public/` to `/var/www/html` |
+| `scripts/apiUpdate.sh` | app container | Installs Node/pm2/Apache/PHP, deploys the Node API to `/var/www/myscene-api` (pm2) and the PHP db-api to `/var/www/myscene-api/db-api` (Apache), writes the db-api `.env` (from `--db-env`, `MYSCENE_DB_HOST`/`MYSCENE_DB_PASSWORD`, or a prompt), checks the DB is reachable and health-checks the full chain |
+| `scripts/update.sh` | either | Runs the scripts for a role: `app` (web → api), `db`, `all` (single host), `web`, `api` |
 
 Useful flags:
 
 ```bash
 ./scripts/dbUpdate.sh FullUpdate     # drop + rebuild the database (asks first; -y to skip)
-MYSCENE_API_BASE="http://ip:3000" ./scripts/webUpdate.sh   # pin the site to an API server
+MYSCENE_API_BASE="http://ip:3000" ./scripts/update.sh app   # pin the site to an API server
 MYSCENE_REPO_URL="git@github.com:you/myscene.git" ./scripts/update.sh   # private mirror
+./scripts/update.sh --help           # all roles and options
 ```
 
 Notes:
 
-- Existing `.env` files are **never** overwritten by an update.
-- On a single host, nginx keeps port 80 and the db-api vhost moves to 8080 automatically.
-- `update.sh` pins the deployed site to the local Node API (`http://<server-ip>:3000`) so a single machine runs the whole stack.
+- Existing `.env` files are never overwritten by an update; DB settings given explicitly (`--db-host`, `--db-password`, `--db-env`) are written into the db-api `.env`.
+- nginx keeps port 80 on the app container and the db-api vhost moves to 8080 automatically.
+- With the `app` role the website keeps its built-in API base (`https://api.myscene.live`); `all` pins it to the local Node API.
 
 # Old README
 ```
