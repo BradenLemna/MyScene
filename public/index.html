@@ -47,7 +47,7 @@ Description: Homepage for MyScene showcasing smaller local artists.
       </div>
 
       <div class="navRight">
-        <a class="btn pink" href="pages/login.html">Log In</a>
+        <a class="loginLink" href="pages/login.html">Log In</a>
       </div>
 
       <button class="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
@@ -58,10 +58,14 @@ Description: Homepage for MyScene showcasing smaller local artists.
 
       <div class="navMenu" id="navMenu">
         <a class="btn cyan" href="pages/addArtist.html">+ Add Artist</a>
-        <a class="btn pink" href="pages/login.html">Log In</a>
+        <a class="loginLink" href="pages/login.html">Log In</a>
       </div>
     </nav>
   </header>
+
+  <div id="apiOfflineBanner" class="offlineBanner" role="status" hidden>
+    <p>Scene data is temporarily offline — search, the genre list, and the map will be back shortly.</p>
+  </div>
 
   <main id="main">
     <!-- Hero + primary artist search -->
@@ -98,26 +102,26 @@ Description: Homepage for MyScene showcasing smaller local artists.
             <!-- Populated at runtime from the /getGenreList endpoint (see index.js) -->
             <div class="filterSubmenu" id="genrefilter"></div>
           </div>
-          <div class="filterCategory">
-            <button type="button" class="filterToggle" aria-expanded="false" aria-controls="datesfilter">
-              Dates
+          <div class="filterCategory soon">
+            <button type="button" class="filterToggle" aria-expanded="false" aria-controls="datesfilter" aria-disabled="true">
+              Dates <span class="soonTag">coming soon</span>
               <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <div class="filterSubmenu" id="datesfilter">
-              <label><input type="checkbox" value="thisWeek"> This week</label>
-              <label><input type="checkbox" value="thisMonth"> This month</label>
-              <label><input type="checkbox" value="anytime"> Anytime</label>
+            <div class="filterSubmenu" id="datesfilter" aria-hidden="true">
+              <label><input type="checkbox" value="thisWeek" disabled> This week</label>
+              <label><input type="checkbox" value="thisMonth" disabled> This month</label>
+              <label><input type="checkbox" value="anytime" disabled> Anytime</label>
             </div>
           </div>
-          <div class="filterCategory">
-            <button type="button" class="filterToggle" aria-expanded="false" aria-controls="sizefilter">
-              Venue size
+          <div class="filterCategory soon">
+            <button type="button" class="filterToggle" aria-expanded="false" aria-controls="sizefilter" aria-disabled="true">
+              Venue size <span class="soonTag">coming soon</span>
               <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
             </button>
-            <div class="filterSubmenu" id="sizefilter">
-              <label><input type="checkbox" value="small"> Small</label>
-              <label><input type="checkbox" value="medium"> Medium</label>
-              <label><input type="checkbox" value="large"> Large</label>
+            <div class="filterSubmenu" id="sizefilter" aria-hidden="true">
+              <label><input type="checkbox" value="small" disabled> Small</label>
+              <label><input type="checkbox" value="medium" disabled> Medium</label>
+              <label><input type="checkbox" value="large" disabled> Large</label>
             </div>
           </div>
         </div>
@@ -167,10 +171,11 @@ Description: Homepage for MyScene showcasing smaller local artists.
           <p class="locateLabel">City</p>
           <div class="searchEngineTop">
             <input type="text" placeholder="Enter city here..." id="citySearch" aria-label="City" autocomplete="off">
+            <p id="cityNote" class="formNote" hidden>City suggestions are unavailable right now — type a city and press the arrow.</p>
           </div>
           <p class="locateLabel">Radius (miles)</p>
           <div class="searchEngineRadius">
-            <input type="text" placeholder="10" id="radiusSearch" aria-label="Radius in miles" inputmode="decimal">
+            <input type="text" value="10" id="radiusSearch" aria-label="Radius in miles" inputmode="decimal">
             <button id="radiusEnterButton" aria-label="Search by location">
               <img src="assets/icons/search-circle-svgrepo-com.svg" id="radiusSearchImg" alt="">
             </button>
@@ -178,6 +183,7 @@ Description: Homepage for MyScene showcasing smaller local artists.
         </div>
 
         <div id="map" role="application" aria-label="Map of nearby artists"></div>
+        <p id="mapNote" class="mapNote" aria-live="polite"></p>
       </div>
     </section>
   </main>

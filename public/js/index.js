@@ -1,5 +1,6 @@
 import { setUserLocation } from "./locationHandling.js";
 import * as apiCalls from "./api.js";
+import { checkApiHealth, showOfflineBanner } from "./status.js";
 
 // ---------- helpers ----------
 
@@ -46,6 +47,13 @@ function toast(message, kind = "info") {
     else alert(message);
 }
 
+// ---------- global API health (EXP-001b / UX-13) ----------
+// One probe per page load. When the API is unreachable, show the offline
+// banner once and let each section render an honest offline state instead
+// of failing silently or falling back to fake data.
+const apiOnline = await checkApiHealth();
+if (!apiOnline) showOfflineBanner();
+
 // ---------- artist search ----------
 const homeSearch = document.getElementById("homeSearch");
 const searchButton = document.getElementById("searchButton");
@@ -74,8 +82,30 @@ async function search() {
 
         // No explicit genre filter: resolve the searched artist's genre
         // through the API (LastFM top genre) and search for that.
+        let exactArtist = null;
         if (resultGenres.length === 0) {
-            let genre = await apiCalls.getGenre(input);
+            let genre = null;
+            try {
+                genre = await apiCalls.getGenre(input);
+            } catch (err) {
+                // UX-14: /getGenre can 404 even for artists that are in the
+                // database. Fall back to the artist record's own genre.
+                console.warn("Genre lookup failed, trying the artist record:", err);
+                try {
+                    const info = await apiCalls.getArtistInfo(input);
+                    if (info && info.music_genre) {
+                        genre = info.music_genre;
+                        exactArtist = info;
+                    }
+                } catch (err2) {
+                    console.warn("Artist record lookup failed too:", err2);
+                }
+            }
+            if (!genre) {
+                // No way to resolve a genre for this name: show an honest empty state.
+                displayArtists([], input.trim());
+                return;
+            }
             genre = genre.charAt(0).toUpperCase() + genre.slice(1); // Capitalize first letter
             resultGenres = [genre];
         }
@@ -85,18 +115,25 @@ async function search() {
 
         // Merge, de-duplicate by name, and keep the exact genre filter applied.
         const seen = new Set();
-        const artists = results.flat().filter(artist => {
+        let artists = results.flat().filter(artist => {
             if (seen.has(artist.artist_name)) return false;
             seen.add(artist.artist_name);
             return true;
         });
 
+        // UX-14: pin the exact-match artist to the top of the results when it
+        // came from the record fallback.
+        if (exactArtist && !seen.has(exactArtist.artist_name)) {
+            artists = [exactArtist, ...artists];
+        }
+
         displayArtists(artists, input.trim());
     } catch (err) {
         console.error("Search failed:", err);
-        toast(err instanceof Error && err.message
+        const reason = err instanceof Error && err.message
             ? err.message
-            : "Something went wrong searching. Please try again.", "error");
+            : "Something went wrong searching.";
+        toast(`${reason} Scene data may be temporarily offline — check back soon.`, "error");
     } finally {
         setSearchLoading(false);
     }
@@ -108,10 +145,6 @@ function setSearchLoading(isLoading) {
 }
 
 // ---------- genre filter (populated from the database) ----------
-// Fallback list used only if the /getGenreList call fails, so the filter is
-// never an empty box.
-const FALLBACK_GENRES = ["Rock", "Indie", "Punk", "Country", "Alt Rock"];
-
 function renderGenreFilter(genres) {
     const container = document.getElementById("genrefilter");
     if (!container) return;
@@ -124,13 +157,24 @@ function renderGenreFilter(genres) {
     if (statEl) statEl.textContent = genres.length;
 }
 
+// Honest empty state. The old FALLBACK_GENRES list (Rock/Indie/…) was fake
+// data rendered whenever the API was down (UX-03).
+function renderGenreUnavailable() {
+    const container = document.getElementById("genrefilter");
+    if (!container) return;
+    container.innerHTML = `<p class="genreUnavailable">Genre list unavailable — search by artist name above.</p>`;
+    const statEl = document.getElementById("statGenres");
+    if (statEl) statEl.textContent = "—";
+}
+
 async function loadGenreFilter() {
     try {
         const genres = await apiCalls.getGenreList();
-        renderGenreFilter(genres.length > 0 ? genres : FALLBACK_GENRES);
+        if (genres.length > 0) renderGenreFilter(genres);
+        else renderGenreUnavailable();
     } catch (err) {
-        console.warn("Failed to load genre list, using fallback:", err);
-        renderGenreFilter(FALLBACK_GENRES);
+        console.warn("Failed to load genre list:", err);
+        renderGenreUnavailable();
     }
 }
 // Single shared promise — reused by deep links so the genre list is only
@@ -169,6 +213,7 @@ filterButton.addEventListener("click", () => {
 // while ticking boxes — only the header toggles).
 document.querySelectorAll(".filterToggle").forEach(btn => {
     btn.addEventListener("click", () => {
+        if (btn.hasAttribute("aria-disabled")) return; // coming-soon category (UX-01)
         const cat = btn.closest(".filterCategory");
         const open = cat.classList.toggle("open");
         btn.setAttribute("aria-expanded", String(open));
@@ -242,6 +287,8 @@ input.addEventListener('keyup', function() {
                 .catch(err => {
                     console.error("City autocomplete failed:", err);
                     renderCitySuggestions([]);
+                    const note = document.getElementById("cityNote");
+                    if (note) note.hidden = false;
                 });
         } else {
             renderCitySuggestions([]);
@@ -290,11 +337,12 @@ document.addEventListener("click", e => {
 // ---------- featured artists ----------
 // Renders featured artists
 async function renderFeaturedArtists() {
+    const featuredDiv = document.getElementById("featuredArtistsGrid");
+    if (!featuredDiv) return;
+    featuredDiv.innerHTML = `<div class="emptyState">Loading the scene&hellip;</div>`;
+
     try {
         const artists = await apiCalls.getFeaturedArtists();
-        const featuredDiv = document.getElementById("featuredArtistsGrid");
-        if (!featuredDiv) return;
-
         if (!artists || artists.length === 0) {
             featuredDiv.innerHTML = `<div class="emptyState">No featured artists yet — check back soon, or add the first one.</div>`;
             return;
@@ -318,8 +366,9 @@ async function renderFeaturedArtists() {
         wireArtistBoxes(featuredDiv, artists);
     } catch (err) {
         console.error("Failed to fetch featured artists:", err);
-        const featuredDiv = document.getElementById("featuredArtistsGrid");
-        if (featuredDiv) featuredDiv.innerHTML = `<div class="emptyState">Couldn't load featured artists right now.</div>`;
+        featuredDiv.innerHTML = `<div class="emptyState">${apiOnline
+            ? "Couldn't load featured artists right now."
+            : "Featured artists can't load while scene data is offline — check back soon."}</div>`;
     }
 }
 renderFeaturedArtists();
@@ -477,6 +526,12 @@ function getUserLongitude() {
   return userLongitude;
 }
 
+// Small caption under the map for context (default city, load failures).
+function setMapNote(text) {
+    const note = document.getElementById("mapNote");
+    if (note) note.textContent = text;
+}
+
 navigator.geolocation.getCurrentPosition(
   function(position) {
     userLatitude = position.coords.latitude;
@@ -484,6 +539,7 @@ navigator.geolocation.getCurrentPosition(
 
     setUserLocation(userLongitude, userLatitude);
     console.log("User location set to:", userLatitude, userLongitude);
+    setMapNote("");
 
     // Initialize map after geolocation is ready
     initializeMap();
@@ -496,6 +552,7 @@ navigator.geolocation.getCurrentPosition(
     console.warn("Geolocation unavailable, using default center:", error.message);
     userLatitude = 36.0822;  // Fayetteville, AR
     userLongitude = -94.1719;
+    setMapNote("Showing Fayetteville, AR (default) — set your city above to change it.");
 
     initializeMap();
     updateRadiusCircle(10);
@@ -537,6 +594,7 @@ async function refreshNearbyArtists(radius) {
         artists = await apiCalls.getNearbyArtists(getUserLatitude(), getUserLongitude(), radius);
     } catch (err) {
         console.error("Failed to load nearby artists:", err);
+        setMapNote("Couldn't load artists for this area — scene data may be offline. Check back soon.");
         return;
     }
     if (requestId !== nearbyRequestId) return; // a newer search superseded this one

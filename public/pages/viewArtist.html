@@ -41,7 +41,7 @@ Description: This is the dynamic View Artist page. Artist is taken from the
       </div>
 
       <div class="navRight">
-        <a class="btn pink" href="login.html">Log In</a>
+        <a class="loginLink" href="login.html">Log In</a>
       </div>
 
       <button class="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
@@ -52,10 +52,14 @@ Description: This is the dynamic View Artist page. Artist is taken from the
 
       <div class="navMenu" id="navMenu">
         <a class="btn ghost" href="../index.html">&larr; Back to MyScene</a>
-        <a class="btn pink" href="login.html">Log In</a>
+        <a class="loginLink" href="login.html">Log In</a>
       </div>
     </nav>
   </header>
+
+  <div id="apiOfflineBanner" class="offlineBanner" role="status" hidden>
+    <p>Scene data is temporarily offline &mdash; this profile will be back shortly.</p>
+  </div>
 
   <main id="main">
     <div id="artistHeader" data-reveal>

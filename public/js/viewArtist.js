@@ -2,6 +2,7 @@
 // MyScene API (see api/server). The artist name comes from
 // the ?artist= query parameter.
 import * as apiCalls from "../js/api.js";
+import { checkApiHealth, showOfflineBanner } from "./status.js";
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -22,6 +23,17 @@ const artistParam = new URLSearchParams(window.location.search).get("artist");
 const notFoundBox = document.getElementById("artistNotFound");
 const artistHeader = document.getElementById("artistHeader");
 const artistStats = document.getElementById("artistStats");
+
+// Global API health probe (EXP-001b / UX-13) — see status.js.
+const apiOnline = await checkApiHealth();
+if (!apiOnline) showOfflineBanner();
+
+// Show the artist's name before the fetch resolves (UX-07): URLSearchParams
+// already decoded the parameter, so this is the real name, not a placeholder.
+if (artistParam) {
+    document.title = `${artistParam} (MyScene)`;
+    document.getElementById("artistName").textContent = artistParam;
+}
 
 // Purely visual favorite toggle — wire up to a real "favorites" endpoint
 // once one exists.
@@ -46,6 +58,15 @@ function showNotFound() {
     artistStats.style.display = "none";
     notFoundBox.style.display = "block";
     document.title = "Artist not found (MyScene)";
+}
+
+// Distinguished from "not found" (UX-08): a missing API is not a missing artist.
+function showOffline() {
+    artistHeader.style.display = "none";
+    artistStats.style.display = "none";
+    notFoundBox.style.display = "block";
+    notFoundBox.innerHTML = `Scene data is temporarily offline — check back in a bit. <a href="../index.html" style="color:var(--cyan);">Back to MyScene</a>`;
+    document.title = "Scene data offline (MyScene)";
 }
 
 // Cycle through image candidates (bundled assets/images file first, then the
@@ -144,7 +165,8 @@ async function loadPage() {
         artist = await apiCalls.getArtistInfo(artistParam);
     } catch (err) {
         console.error("Couldn't load artist info:", err);
-        showNotFound();
+        if (apiOnline === false) showOffline();
+        else showNotFound();
         return;
     }
     if (!artist || !artist.artist_name) {
@@ -188,8 +210,14 @@ async function loadPage() {
         const events = await apiCalls.getArtistEvents(artist.artist_name);
         renderConcerts(Array.isArray(events) ? events : []);
     } catch (err) {
+        // UX-08: a failed fetch must not masquerade as "no concerts".
         console.error("Couldn't load artist events:", err);
-        renderConcerts([]);
+        const msg = apiOnline
+            ? "Couldn't load show info — check back soon."
+            : "Show info can't load while scene data is offline.";
+        for (const id of ["previousConcerts", "upcomingConcerts"]) {
+            document.getElementById(id).innerHTML = `<li style="border:none; color:var(--ink-faint); font-family:var(--font-mono); font-size:.75rem;">${msg}</li>`;
+        }
     }
 }
 
