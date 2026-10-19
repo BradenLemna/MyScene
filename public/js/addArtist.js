@@ -11,6 +11,58 @@ function toast(message, kind = 'info') {
     else alert(message);
 }
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+// UX-09: genre suggestions from the live list. Free text stays allowed —
+// that is how new genres enter the database. On failure the field is plain
+// free text with a note, never fake options (batch-1 honesty rule).
+async function loadGenreSuggestions() {
+    const listEl = document.getElementById("genreList");
+    const noteEl = document.getElementById("genreNote");
+    if (!listEl) return;
+    try {
+        const response = await fetch(API_BASE + "/getGenreList");
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        (Array.isArray(data.genres) ? data.genres : []).forEach(genre => {
+            const option = document.createElement("option");
+            option.value = String(genre);
+            listEl.appendChild(option);
+        });
+    } catch (err) {
+        console.warn("Genre suggestions unavailable:", err);
+        if (noteEl) noteEl.hidden = false;
+    }
+}
+loadGenreSuggestions();
+
+// UX-10: direct path to the artist the visitor just added. A fresh artist
+// with a novel genre will not surface in genre search, but the profile URL
+// always resolves.
+function showSuccessNote(artistName) {
+    const note = document.getElementById("addSuccessNote");
+    if (!note) return;
+    note.innerHTML = `Added <strong>${escapeHtml(artistName)}</strong> &mdash; `
+        + `<a href="viewArtist.html?artist=${encodeURIComponent(artistName)}">view their profile &rarr;</a>`;
+    note.hidden = false;
+}
+
+// The note describes the last successful add — editing the form again
+// makes it stale.
+document.querySelectorAll("#bandSubmission input").forEach(input => {
+    input.addEventListener("input", () => {
+        const note = document.getElementById("addSuccessNote");
+        if (note) note.hidden = true;
+    });
+});
+
 document.getElementById("addBandButton").addEventListener("click", function() {
     let name = document.getElementById("bandName").value.trim();
     let city = document.getElementById("bandCity").value.trim();
@@ -54,6 +106,7 @@ document.getElementById("addBandButton").addEventListener("click", function() {
           if (data.success) {
                 toast("Artist was successfully added to the database.", "success");
                 document.getElementById("bandSubmission").querySelectorAll("input").forEach(i => i.value = "");
+                showSuccessNote(name);
           } else {
                 toast("Artist name, city, state, and music genre must be filled in.", "error");
           }

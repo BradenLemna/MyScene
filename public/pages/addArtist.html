@@ -75,7 +75,9 @@ Description: This is the page where artists can add their band.
 
         <div class="form-group">
           <label for="bandGenre">Genre</label>
-          <input type="text" id="bandGenre" placeholder="e.g. Rock, Indie, Punk..." required>
+          <input type="text" id="bandGenre" list="genreList" placeholder="e.g. Rock, Indie, Punk..." required>
+          <datalist id="genreList"></datalist>
+          <p id="genreNote" class="formNote" hidden>Genre suggestions are unavailable right now — type a genre.</p>
         </div>
 
         <div class="form-group">
@@ -91,6 +93,7 @@ Description: This is the page where artists can add their band.
         <!-- Submit Button -->
         <button id="addBandButton" class="btn pink" type="button">Add to MyScene</button>
         <p class="formHint">Name, city, state, and genre are required.</p>
+        <p id="addSuccessNote" class="formNote" hidden></p>
       </div>
     </div>
   </main>

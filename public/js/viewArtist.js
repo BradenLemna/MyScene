@@ -41,11 +41,52 @@ if (artistParam) {
     document.getElementById("artistName").textContent = artistParam;
 }
 
-// Purely visual favorite toggle — wire up to a real "favorites" endpoint
-// once one exists.
-document.getElementById("favArtist").addEventListener("click", function() {
+// UX-06: "Fav Artist" persists per-artist in localStorage (decided
+// 2026-10-19; a real favorites endpoint is a future login-gate
+// candidate). Storage failures (e.g. private mode) degrade to the old
+// visual-only behavior — this must never throw.
+const FAV_STORAGE_KEY = "myscene:favs";
+
+function loadFavs() {
+    try {
+        return JSON.parse(localStorage.getItem(FAV_STORAGE_KEY)) || {};
+    } catch {
+        return {};
+    }
+}
+
+function setFavStored(name, isFav) {
+    try {
+        const favs = loadFavs();
+        if (isFav) favs[name] = true;
+        else delete favs[name];
+        localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(favs));
+    } catch {
+        // Storage unavailable (private mode etc.) — visual-only fallback.
+    }
+}
+
+const favButton = document.getElementById("favArtist");
+function renderFav(isFav) {
+    favButton.classList.toggle("active", isFav);
+    favButton.setAttribute("aria-pressed", String(isFav));
+    favButton.innerHTML = favLabel(isFav);
+}
+
+function favLabel(isFav) {
+    return isFav ? "&#9733; Favorited" : "&hearts; Fav Artist";
+}
+
+// Restore this artist's stored state as early as the name is known,
+// so a returning visitor sees their favorite immediately (UX-06).
+if (artistParam && loadFavs()[artistParam]) renderFav(true);
+
+favButton.addEventListener("click", function() {
     const isNowActive = this.classList.toggle("active");
-    this.innerHTML = isNowActive ? "&#9733; Favorited" : "&hearts; Fav Artist";
+    renderFav(isNowActive);
+    if (artistParam) setFavStored(artistParam, isNowActive);
+    // EXP-002: profile interaction, same detail shape as profile_view.
+    track("fav_toggle", artistParam ? `artist:${artistParam}` : undefined);
 });
 
 // "View Similar" -> homepage genre search for this artist's genre.

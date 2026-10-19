@@ -1318,3 +1318,49 @@ footer a:hover{ color:var(--cyan); }
     color: var(--ink-faint);
     margin: 0.4rem 0 0;
 }
+/* UX-12 (batch 3): minimum 44px touch targets (WCAG 2.5.5) on small
+   screens. Desktop keeps its current sizes — this is a touch
+   requirement. #searchButton / #radiusEnterButton already measure 46px. */
+@media (max-width: 720px) {
+  .btn,
+  .formPanel .btn,
+  #filterButton,
+  .filterToggle,
+  input[type="text"],
+  input[type="password"],
+  .searchEngineRadius input {
+    min-height: 44px;
+  }
+
+  .navToggle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .loginLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .toastClose {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+
+  .filterSubmenu label {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .citySuggestion {
+    min-height: 44px;
+  }
+}

@@ -8,7 +8,8 @@
  * Body (JSON):
  *   page    (required — one of: index, viewArtist, addArtist, login)
  *   event   (required — one of: pageview, search_run, search_success,
- *                        profile_view, insta_click, offline_notice_shown)
+ *                        profile_view, insta_click, offline_notice_shown,
+ *                        fav_toggle)
  *   detail  (optional, max 60 chars — e.g. "results:5", "artist:Burn Absolute")
  *
  * Privacy: stores nothing but page/event/detail/timestamp. No IP address,
@@ -32,6 +33,7 @@ $eventAllowlist = [
     'profile_view',
     'insta_click',
     'offline_notice_shown',
+    'fav_toggle',
 ];
 
 $page = str_field($data, 'page');
