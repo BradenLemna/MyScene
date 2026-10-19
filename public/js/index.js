@@ -47,6 +47,12 @@ function toast(message, kind = "info") {
     else alert(message);
 }
 
+// EXP-002 analytics — see public/js/track.js. Guarded so the page still
+// works if track.js is missing (analytics must never break the site).
+function track(event, detail) {
+    if (typeof window.trackEvent === "function") window.trackEvent(event, detail);
+}
+
 // ---------- global API health (EXP-001b / UX-13) ----------
 // One probe per page load. When the API is unreachable, show the offline
 // banner once and let each section render an honest offline state instead
@@ -75,6 +81,9 @@ async function search() {
         toast("Please enter an artist name or pick a genre filter.", "error");
         return;
     }
+
+    // EXP-002: count every search the visitor actually runs.
+    track("search_run");
 
     setSearchLoading(true);
     try {
@@ -392,6 +401,11 @@ function displayArtists(artists, queryName = "") {
         resultsDiv.innerHTML = `<div class="emptyState">No artists match that search yet — try a different name or clear a filter.</div>`;
         return;
     }
+
+    // EXP-002: a search "succeeds" when a results grid with ≥1 artist renders.
+    // The detail carries the count, so the METRICS.md success-rate query can
+    // also show how many results a successful search typically yields.
+    track("search_success", `results:${artists.length}`);
 
     resultsDiv.innerHTML = artists.map((artist, i) => `
         <div class="artistBox" data-artist-index="${i}" tabindex="0" role="button" aria-label="View ${escapeHtml(artist.artist_name)}">

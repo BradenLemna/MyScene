@@ -13,6 +13,10 @@ const API_BASE = (typeof window !== "undefined" && window.MYSCENE_API_BASE)
 
 let healthPromise = null;
 
+// EXP-002: count the offline notice once per page load, even if the banner
+// function is called more than once.
+let bannerTracked = false;
+
 export function checkApiHealth() {
     if (!healthPromise) {
         healthPromise = fetch(`${API_BASE}/`, { method: "GET" })
@@ -25,4 +29,12 @@ export function checkApiHealth() {
 export function showOfflineBanner() {
     const banner = document.getElementById("apiOfflineBanner");
     if (banner) banner.hidden = false;
+
+    // EXP-002: one offline_notice_shown event per page load.
+    if (!bannerTracked) {
+        bannerTracked = true;
+        if (typeof window.trackEvent === "function") {
+            window.trackEvent("offline_notice_shown");
+        }
+    }
 }

@@ -111,6 +111,7 @@ Notes:
 - Existing `.env` files are never overwritten by an update; DB settings given explicitly (`--db-host`, `--db-password`, `--db-env`) are written into the db-api `.env`.
 - nginx keeps port 80 on the app container and the db-api vhost moves to 8080 automatically.
 - With the `app` role the website keeps its built-in API base (`https://api.myscene.live`); `all` pins it to the local Node API.
+- Features that add a table or a db-api endpoint (e.g. EXP-002 analytics, 2026-10-19) roll out in dependency order: `dbUpdate.sh` (runs `migrations/*.sql`) → `apiUpdate.sh` → `webUpdate.sh`.
 
 # Old README
 ```

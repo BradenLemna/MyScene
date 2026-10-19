@@ -34,4 +34,5 @@ export const dbApi = {
     getNearbyArtists: (latitude, longitude, radius) =>
         callDb('get_nearby_artists.php', { latitude, longitude, radius }),
     verifyUser: (username, password) => callDb('verify_user.php', { username, password }),
+    trackEvent: (payload) => callDb('track_event.php', payload),
 };

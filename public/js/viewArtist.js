@@ -19,6 +19,12 @@ function toast(message, kind = "info") {
     else alert(message);
 }
 
+// EXP-002 analytics — see public/js/track.js. Guarded so the page still
+// works if track.js is missing (analytics must never break the site).
+function track(event, detail) {
+    if (typeof window.trackEvent === "function") window.trackEvent(event, detail);
+}
+
 const artistParam = new URLSearchParams(window.location.search).get("artist");
 const notFoundBox = document.getElementById("artistNotFound");
 const artistHeader = document.getElementById("artistHeader");
@@ -174,6 +180,9 @@ async function loadPage() {
         return;
     }
 
+    // EXP-002: a profile_view is a successfully loaded artist profile.
+    track("profile_view", `artist:${artist.artist_name}`);
+
     // Header
     document.getElementById("artistName").textContent = artist.artist_name;
     document.title = `${artist.artist_name} (MyScene)`;
@@ -192,6 +201,10 @@ async function loadPage() {
     if (artist.insta_handle) {
         const handle = artist.insta_handle.replace(/^@/, "");
         instaEl.innerHTML = `Follow <a href="https://instagram.com/${encodeURIComponent(handle)}" target="_blank" rel="noopener">${escapeHtml(artist.insta_handle)}</a>`;
+        // EXP-002: the ONE action — someone going to follow on Instagram.
+        instaEl.querySelector("a")?.addEventListener("click", () => {
+            track("insta_click", `artist:${artist.artist_name}`);
+        });
     } else {
         instaEl.style.display = "none";
     }

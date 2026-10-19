@@ -53,6 +53,20 @@ CREATE TABLE Users (
     PRIMARY KEY (username, user_password)
 );
 
+-- Privacy-friendly analytics counter (EXP-002) — the live-database version
+-- of this table is migrations/002_analytics_events.sql. Stores only
+-- page/event/detail/timestamp: no IP, no user agent, no PII.
+DROP TABLE IF EXISTS AnalyticsEvents;
+
+CREATE TABLE AnalyticsEvents (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    page VARCHAR(20) NOT NULL,
+    event VARCHAR(30) NOT NULL,
+    detail VARCHAR(60),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_analytics_event_created (event, created_at)
+);
+
 -- Example Input
 INSERT INTO Users VALUES ("mrpepsi", "12345");
 INSERT INTO Users VALUES ("whisperingcoder", "23456");

@@ -9,6 +9,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import geocodingRoutes from './routes/geocoding.js';
 import artistRoutes from './routes/artists.js';
 import authRoutes from './routes/auth.js';
+import analyticsRoutes from './routes/analytics.js';
 
 export function createApp() {
     const app = express();
@@ -25,6 +26,7 @@ export function createApp() {
     app.use(geocodingRoutes);
     app.use(artistRoutes);
     app.use(authRoutes);
+    app.use(analyticsRoutes);
 
     app.use(notFoundHandler);
     app.use(errorHandler);
