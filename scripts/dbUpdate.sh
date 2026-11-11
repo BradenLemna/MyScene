@@ -36,7 +36,9 @@
 #   5. Two containers only: makes MariaDB listen on the network
 #      (bind-address, default 0.0.0.0) and, if ufw is active, opens 3306 for
 #      the app host(s). Access stays limited to the granted hosts.
-#   6. Verifies the connection and reports the artist count.
+#   6. Installs a nightly database backup: a cron job dumps MyScene to
+#      ~/myscene-db/backups/ (gzip, 7-day retention).
+#   7. Verifies the connection and reports the artist count.
 #
 # Usage:
 #   ./dbUpdate.sh                          # set up / update, never touches data
@@ -412,7 +414,55 @@ skip-networking = 0"
     log "App-container credentials written to $APP_CRED_FILE (DB_HOST=$PUBLIC_DB_HOST)"
 fi
 
-# --- 6. Verify ---------------------------------------------------------------
+# --- 6. Nightly backups --------------------------------------------------------
+
+BACKUP_DIR="$DB_DIR/backups"
+BACKUP_SCRIPT="$HOME/.local/bin/myscene-db-backup"
+BACKUP_LOG="$DB_DIR/backup.log"
+BACKUP_RETENTION_DAYS=7
+CRON_MARKER="# myscene-db-backup"
+
+install -d -m 700 "$BACKUP_DIR"
+
+# The dump script is generated with this machine's paths baked in and runs
+# from the deploy user's crontab (no root needed: mysqldump connects as the
+# 'myscene' MySQL user and writes inside the user's own $DB_DIR).
+mkdir -p "$(dirname "$BACKUP_SCRIPT")"
+cat > "$BACKUP_SCRIPT" <<EOF
+#!/usr/bin/env bash
+# Managed by MyScene dbUpdate.sh — nightly MyScene database backup.
+set -euo pipefail
+BACKUP_DIR="$BACKUP_DIR"
+CRED_FILE="$CRED_FILE"
+RETENTION_DAYS=$BACKUP_RETENTION_DAYS
+STAMP="\$(date +%Y%m%d-%H%M%S)"
+DB_PASSWORD="\$(sed -n 's/^DB_PASSWORD=//p' "\$CRED_FILE" | tail -n1)"
+mysqldump --single-transaction --routines --triggers \\
+    -u "$DB_USER" -p"\$DB_PASSWORD" -h "$DB_HOST" -P "$DB_PORT" "$DB_NAME" \\
+    | gzip > "\$BACKUP_DIR/myscene-\$STAMP.sql.gz"
+find "\$BACKUP_DIR" -name 'myscene-*.sql.gz' -mtime +"\$RETENTION_DAYS" -delete
+echo "\$(date -Is) backup written: myscene-\$STAMP.sql.gz"
+EOF
+chmod 700 "$BACKUP_SCRIPT"
+
+if ! have cron; then
+    apt_install cron
+fi
+svc_start cron cron "$SUDO bash -c 'nohup cron >/dev/null 2>&1 &'"
+
+CRON_LINE="30 3 * * * $BACKUP_SCRIPT >> $BACKUP_LOG 2>&1 $CRON_MARKER"
+CURRENT_CRONTAB="$(crontab -l 2>/dev/null || true)"
+if ! grep -qF "$CRON_MARKER" <<< "$CURRENT_CRONTAB"; then
+    {
+        [ -n "$CURRENT_CRONTAB" ] && printf '%s\n' "$CURRENT_CRONTAB"
+        printf '%s\n' "$CRON_LINE"
+    } | crontab -
+    log "Nightly backup installed: 03:30 daily -> $BACKUP_DIR ($BACKUP_RETENTION_DAYS-day retention)"
+else
+    log "Nightly backup cron already present."
+fi
+
+# --- 7. Verify ---------------------------------------------------------------
 
 log "Verifying database access as '$DB_USER'..."
 ARTISTS="$($SUDO mysql -h 127.0.0.1 -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -N -e "SELECT COUNT(*) FROM \`$DB_NAME\`.Artists;")"

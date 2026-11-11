@@ -56,6 +56,36 @@ All responses are JSON. Errors use the shape `{"error": "..."}` with an
 appropriate status code (400 validation, 404 not found, 409 conflict,
 502/504 upstream failure, 500 server misconfiguration).
 
+## Rate limiting
+
+All endpoints are rate-limited per client IP (express-rate-limit, in-memory
+store). Exhausted limits answer `429` with the standard `{"error": "..."}`
+shape plus `RateLimit` / `RateLimit-Policy` headers (IETF draft-7).
+
+| Scope | Default | Env override |
+| ----- | ------- | ------------ |
+| Whole API | 100 req / 15 min | `RATE_LIMIT_DEFAULT_MAX`, `RATE_LIMIT_DEFAULT_WINDOW_MS` |
+| `POST /verify_user` | 10 req / 15 min | `RATE_LIMIT_AUTH_MAX`, `RATE_LIMIT_AUTH_WINDOW_MS` |
+| `POST /add_artist`, `POST /add_event` (shared budget) | 10 req / hour | `RATE_LIMIT_WRITE_MAX`, `RATE_LIMIT_WRITE_WINDOW_MS` |
+| `POST /register` (planned) | 5 req / hour | `RATE_LIMIT_REGISTER_MAX`, `RATE_LIMIT_REGISTER_WINDOW_MS` |
+| `POST /track` | 60 req / min | `RATE_LIMIT_TRACK_MAX`, `RATE_LIMIT_TRACK_WINDOW_MS` |
+
+`TRUST_PROXY` (default `0`): number of trusted proxy hops in front of the
+server. Set it to `1` when the API sits behind a reverse proxy (e.g. nginx
+terminating TLS) — otherwise `req.ip` is the proxy's address and every
+client behind it shares one bucket.
+
+The in-memory store is per process: correct for a single pm2 instance. If
+the API ever runs as multiple instances, swap in a shared store
+(e.g. rate-limit-redis).
+
+## Tests
+
+`npm test` runs the integration suite (node:test + supertest) against mock
+upstreams (PHP db-api, LocationIQ, LastFM) — no database or API keys needed.
+CI (`.github/workflows/ci.yml`) runs it on every push/PR, plus a PHP db-api
+smoke test (`api/db/smoke.sh`) against a MariaDB service container.
+
 ## Deployment
 
 `scripts/apiUpdate.sh` copies this directory to `/var/www/myscene-api`,

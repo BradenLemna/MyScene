@@ -8,12 +8,13 @@
 import { Router } from 'express';
 
 import { dbApi } from '../services/dbApi.js';
+import { authLimiter } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { requireFields, strField } from '../utils/validate.js';
 
 const router = Router();
 
-router.post('/verify_user', asyncHandler(async (req, res) => {
+router.post('/verify_user', authLimiter, asyncHandler(async (req, res) => {
     const body = requireFields(req.body, ['username', 'password']);
     const data = await dbApi.verifyUser(strField(body, 'username'), body.password);
     res.json({ verified: data?.verified === true });

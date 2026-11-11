@@ -112,6 +112,8 @@ Notes:
 - nginx keeps port 80 on the app container and the db-api vhost moves to 8080 automatically.
 - With the `app` role the website keeps its built-in API base (`https://api.myscene.live`); `all` pins it to the local Node API.
 - Features that add a table or a db-api endpoint (e.g. EXP-002 analytics, 2026-10-19) roll out in dependency order: `dbUpdate.sh` (runs `migrations/*.sql`) → `apiUpdate.sh` → `webUpdate.sh`.
+- CI: `.github/workflows/ci.yml` runs the Node API test suite (`api/server`, mock upstreams — no DB or keys needed) and the PHP db-api smoke test (`api/db/smoke.sh`, MariaDB service container) on every push/PR.
+- Nightly DB backups: `dbUpdate.sh` installs a cron job (03:30 daily) that dumps MyScene to `~/myscene-db/backups/` (gzip, 7-day retention).
 
 # Old README
 ```

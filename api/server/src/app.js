@@ -3,8 +3,10 @@
 
 import express from 'express';
 
+import { config } from './config.js';
 import { corsMiddleware } from './middleware/cors.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import { defaultLimiter } from './middleware/rateLimit.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import geocodingRoutes from './routes/geocoding.js';
 import artistRoutes from './routes/artists.js';
@@ -15,9 +17,13 @@ export function createApp() {
     const app = express();
 
     app.disable('x-powered-by');
+    if (config.trustProxyHops > 0) {
+        app.set('trust proxy', config.trustProxyHops);
+    }
     app.use(corsMiddleware());
     app.use(requestLogger);
     app.use(express.json());
+    app.use(defaultLimiter);
 
     app.get('/', (req, res) => {
         res.json({ status: 'ok', service: 'myscene-api' });

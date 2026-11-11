@@ -21,6 +21,7 @@ import { Router } from 'express';
 import { dbApi } from '../services/dbApi.js';
 import { getTopGenre } from '../services/lastFm.js';
 import { searchPlace } from '../services/locationIQ.js';
+import { writeLimiter } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import {
     floatField,
@@ -107,7 +108,7 @@ async function resolveCoordinates(body, city, region) {
     return (await geocodeOrNull(city, region)) ?? { latitude: null, longitude: null };
 }
 
-router.post('/add_artist', asyncHandler(async (req, res) => {
+router.post('/add_artist', writeLimiter, asyncHandler(async (req, res) => {
     const body = requireFields(req.body, [
         'artist_name',
         'location_city',
@@ -133,7 +134,7 @@ router.post('/add_artist', asyncHandler(async (req, res) => {
     res.json(result);
 }));
 
-router.post('/add_event', asyncHandler(async (req, res) => {
+router.post('/add_event', writeLimiter, asyncHandler(async (req, res) => {
     const body = requireFields(req.body, [
         'artist_name',
         'venue_name',

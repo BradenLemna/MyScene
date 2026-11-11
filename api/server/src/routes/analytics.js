@@ -8,11 +8,12 @@
 import { Router } from 'express';
 
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { trackLimiter } from '../middleware/rateLimit.js';
 import { dbApi } from '../services/dbApi.js';
 
 const analyticsRoutes = Router();
 
-analyticsRoutes.post('/track', asyncHandler(async (req, res) => {
+analyticsRoutes.post('/track', trackLimiter, asyncHandler(async (req, res) => {
     const { page, event, detail } = req.body ?? {};
     const data = await dbApi.trackEvent({ page, event, detail });
     res.json(data);

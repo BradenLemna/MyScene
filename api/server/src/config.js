@@ -24,6 +24,25 @@ function envInt(name, fallback) {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+// Per-route rate limits (middleware/rateLimit.js). Defaults are tuned for a
+// single public API; every value is overridable via
+// RATE_LIMIT_<NAME>_MAX / RATE_LIMIT_<NAME>_WINDOW_MS.
+const RATE_LIMIT_DEFAULTS = {
+    default: { windowMs: 15 * 60 * 1000, max: 100 },  // whole API
+    auth: { windowMs: 15 * 60 * 1000, max: 10 },      // /verify_user
+    write: { windowMs: 60 * 60 * 1000, max: 10 },     // /add_artist, /add_event
+    register: { windowMs: 60 * 60 * 1000, max: 5 },   // /register (later batch)
+    track: { windowMs: 60 * 1000, max: 60 },          // /track
+};
+
+function rateLimitSetting(name) {
+    const d = RATE_LIMIT_DEFAULTS[name];
+    return {
+        windowMs: envInt(`RATE_LIMIT_${name.toUpperCase()}_WINDOW_MS`, d.windowMs),
+        max: envInt(`RATE_LIMIT_${name.toUpperCase()}_MAX`, d.max),
+    };
+}
+
 export const config = Object.freeze({
     port: envInt('PORT', 3000),
 
@@ -54,4 +73,26 @@ export const config = Object.freeze({
 
     // How long to wait for an upstream call before giving up.
     upstreamTimeoutMs: envInt('UPSTREAM_TIMEOUT_MS', 10000),
+
+    // Per-route rate limits (see RATE_LIMIT_DEFAULTS above).
+    rateLimits: {
+        default: rateLimitSetting('default'),
+        auth: rateLimitSetting('auth'),
+        write: rateLimitSetting('write'),
+        register: rateLimitSetting('register'),
+        track: rateLimitSetting('track'),
+    },
+
+    // Trusted proxy hops in front of this server (TRUST_PROXY env, e.g. '1'
+    // when nginx terminates TLS). 0 (the default) = no proxy: req.ip is the
+    // real client. Rate limiting keys on req.ip, so set this when deploying
+    // behind a proxy or every client behind it shares one bucket.
+    trustProxyHops: (() => {
+        const raw = process.env.TRUST_PROXY;
+        if (!raw) {
+            return 0;
+        }
+        const parsed = Number.parseInt(raw, 10);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    })(),
 });
