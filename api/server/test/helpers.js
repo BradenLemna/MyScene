@@ -10,6 +10,15 @@
 
 import http from 'node:http';
 
+// Session ids the mock db-api recognises (see the 'me' case below). The
+// ids are self-describing so the tests read like assertions.
+export const MOCK_SESSIONS = {
+    'fan-session': { username: 'fanuser', is_admin: false, artist_status: 'none' },
+    'pending-session': { username: 'pendinguser', is_admin: false, artist_status: 'pending' },
+    'artist-session': { username: 'artistuser', is_admin: false, artist_status: 'verified' },
+    'admin-session': { username: 'adminuser', is_admin: true, artist_status: 'verified' },
+};
+
 function startMock(handler) {
     const server = http.createServer((req, res) => {
         let body = '';
@@ -94,8 +103,48 @@ export async function startMockDbApi() {
             case 'verify_user':
                 json(res, 200, { verified: parsed.username === 'gooduser' && parsed.password === 'right' });
                 break;
+            case 'register_user':
+                if (parsed.username === 'taken') {
+                    json(res, 409, { error: 'That username is already taken.' });
+                } else if (typeof parsed.password !== 'string' || parsed.password.length < 8) {
+                    json(res, 400, { error: 'Field "password" must be at least 8 characters.' });
+                } else if (!/^[a-zA-Z0-9._]{3,20}$/.test(parsed.username || '')) {
+                    json(res, 400, { error: 'Field "username" must be 3-20 characters (letters, numbers, dots, underscores).' });
+                } else {
+                    json(res, 200, { success: true });
+                }
+                break;
+            case 'create_session':
+                if (parsed.username === 'gooduser' && parsed.password === 'right') {
+                    json(res, 200, { verified: true, session_id: 'a'.repeat(64) });
+                } else {
+                    json(res, 200, { verified: false });
+                }
+                break;
+            case 'logout':
+                json(res, 200, { success: true });
+                break;
+            case 'me': {
+                const me = MOCK_SESSIONS[parsed.session_id];
+                if (me) {
+                    json(res, 200, me);
+                } else {
+                    json(res, 404, { error: 'Session not found or expired.' });
+                }
+                break;
+            }
+            case 'request_artist_access':
+                if (parsed.session_id === 'fan-session') {
+                    json(res, 200, { success: true, artist_status: 'pending' });
+                } else if (MOCK_SESSIONS[parsed.session_id]?.artist_status === 'verified') {
+                    // No-op for verified accounts.
+                    json(res, 200, { success: true, artist_status: 'verified' });
+                } else {
+                    json(res, 404, { error: 'Session not found or expired.' });
+                }
+                break;
             case 'track_event':
-                if (!['index', 'viewArtist', 'addArtist', 'login'].includes(parsed.page)) {
+                if (!['index', 'viewArtist', 'addArtist', 'login', 'register'].includes(parsed.page)) {
                     json(res, 400, { error: 'Field "page" is not a known page.' });
                 } else {
                     json(res, 200, { success: true });

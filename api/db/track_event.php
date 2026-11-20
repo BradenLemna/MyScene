@@ -6,7 +6,8 @@
  * The frontend sends one small beacon per event (public/js/track.js).
  *
  * Body (JSON):
- *   page    (required — one of: index, viewArtist, addArtist, login)
+ *   page    (required — one of: index, viewArtist, addArtist, login,
+ *                        register)
  *   event   (required — one of: pageview, search_run, search_success,
  *                        profile_view, insta_click, offline_notice_shown,
  *                        fav_toggle)
@@ -25,7 +26,7 @@ require __DIR__ . '/bootstrap.php';
 
 $data = read_json_body();
 
-$pageAllowlist = ['index', 'viewArtist', 'addArtist', 'login'];
+$pageAllowlist = ['index', 'viewArtist', 'addArtist', 'login', 'register'];
 $eventAllowlist = [
     'pageview',
     'search_run',

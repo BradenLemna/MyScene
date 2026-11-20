@@ -1,14 +1,19 @@
 // Shared API base — mirrors js/api.js so the
 // production default can be overridden locally by setting
 // window.MYSCENE_API_BASE (e.g. 'http://127.0.0.1:3000') before this script runs.
-const API_BASE = (typeof window !== 'undefined' && window.MYSCENE_API_BASE)
-    ? window.MYSCENE_API_BASE.replace(/\/+$/, '')
-    : 'https://api.myscene.live';
+const API_BASE = (typeof window !== "undefined" && window.MYSCENE_API_BASE)
+    ? window.MYSCENE_API_BASE.replace(/\/+$/, "")
+    : "https://api.myscene.live";
 
 // Toasts via shared ui.js (loaded first), with an alert() fallback.
-function toast(message, kind = 'info') {
-    if (typeof window.showToast === 'function') window.showToast(message, kind);
+function toast(message, kind = "info") {
+    if (typeof window.showToast === "function") window.showToast(message, kind);
     else alert(message);
+}
+
+// One-time note when arriving from a successful registration.
+if (new URLSearchParams(window.location.search).has("registered")) {
+    toast("Account created — log in to continue.", "success");
 }
 
 document.getElementById("login").addEventListener("click", function() {
@@ -26,11 +31,15 @@ document.getElementById("login").addEventListener("click", function() {
     const originalLabel = button.textContent;
     button.textContent = "Logging in...";
 
-    fetch(API_BASE + "/verify_user", {
+    // /login verifies the pair AND creates the DB-backed session in one
+    // call; on success the API sets the httpOnly myscene_session cookie
+    // before this redirect, so the next page load is already logged in.
+    fetch(API_BASE + "/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
             username: username,
             password: password

@@ -1,0 +1,121 @@
+<!--
+File Name: register.html
+Continued Development: Braden Lemna, @BradenLemna (Github)
+Description: Account registration for MyScene (Batch 2). Open self-registration
+for fan accounts: username + password, no email verification. On success the
+user is sent to the login page (?registered=1).
+Redesign: Windows 98 desktop metaphor.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Create a MyScene account.">
+    <meta name="theme-color" content="#008080">
+    <title>Create an Account &mdash; MyScene</title>
+    <link rel="icon" type="image/png" href="../assets/icons/mySceneLogo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body data-page="register" data-root="../">
+
+    <a class="skipLink" href="#main">Skip to content</a>
+    <div class="starfield" aria-hidden="true"></div>
+
+    <div class="desktop">
+        <div class="window" id="mainWindow">
+            <div class="titleBar">
+                <img class="titleBarIcon" src="../assets/icons/mySceneLogo.png" alt=""
+                     onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'titleBarIcon emoji',textContent:'\u270D\uFE0F'}))">
+                <span class="titleBarText">Create an Account &mdash; MyScene</span>
+                <span class="titleBarButtons">
+                    <button class="tbBtn" type="button" aria-label="Minimize"><span class="glyph">&#9633;</span></button>
+                    <button class="tbBtn" type="button" aria-label="Maximize"><span class="glyph">&#9633;</span></button>
+                    <button class="tbBtn" type="button" aria-label="Close"><span class="glyph">&times;</span></button>
+                </span>
+            </div>
+
+            <div class="menuBar" aria-label="Menu">
+                <div class="menuWrap">
+                    <span class="menu">File</span>
+                    <div class="menuDrop" role="menu">
+                        <a class="menuDropItem" href="../index.html">Home</a>
+                        <a class="menuDropItem" href="addArtist.html">Add Artist&hellip;</a>
+                        <a class="menuDropItem" href="login.html">Log In&hellip;</a>
+                        <div class="menuDivider"></div>
+                        <a class="menuDropItem" href="register.html">Create Account&hellip;</a>
+                    </div>
+                </div>
+                <div class="menuWrap">
+                    <span class="menu">Help</span>
+                    <div class="menuDrop" role="menu">
+                        <a class="menuDropItem" href="#" data-about>About MyScene</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <span class="toolbarGrip" aria-hidden="true"></span>
+                <a class="btn ghost" href="../index.html">&larr; Back to MyScene</a>
+                <span class="spacer"></span>
+                <a class="loginLink" href="login.html">Log In</a>
+            </div>
+
+            <div class="winBody">
+                <main id="main">
+                    <div class="login-container">
+                        <div class="login-box formPanel" data-title="Create Account">
+                            <h1>Create an account</h1>
+                            <p class="formLead">Join MyScene to request artist access and more.</p>
+                            <form id="registerForm" novalidate>
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <input type="text" id="username" name="username" required minlength="3" maxlength="20"
+                                           pattern="[a-zA-Z0-9._]+" autocomplete="username">
+                                    <p class="formNote">3-20 characters: letters, numbers, dots, underscores.</p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <input type="password" id="password" name="new-password" required minlength="8"
+                                           autocomplete="new-password">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="passwordConfirm">Confirm password</label>
+                                    <input type="password" id="passwordConfirm" name="passwordConfirm" required minlength="8"
+                                           autocomplete="new-password">
+                                </div>
+
+                                <button type="button" id="register" class="btn pink">Create account</button>
+                            </form>
+                            <p class="formNote">Already have an account? <a href="login.html">Log in</a></p>
+                        </div>
+                    </div>
+                </main>
+
+                <footer>
+                    <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+                </footer>
+            </div>
+
+            <div class="statusBar">
+                <span class="statusPanel grow">Ready</span>
+                <span class="statusPanel">MyScene</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/ui.js"></script>
+    <script src="../js/session.js"></script>
+    <script src="../js/track.js"></script>
+    <script src="../js/register.js"></script>
+
+</body>
+</html>

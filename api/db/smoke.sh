@@ -184,6 +184,53 @@ expect_status "verify_user (wrong password)" 200 POST /verify_user.php \
 expect_contains "verify_user (wrong) shape" '"verified":false'
 expect_status "verify_user (missing field)" 400 POST /verify_user.php '{"username":"smoke_user"}'
 
+# --- auth (Batch 2): registration + sessions ---
+expect_status "register_user (valid)" 200 POST /register_user.php \
+    '{"username":"smoke_fan","password":"fan-password-1"}'
+expect_contains "register_user (valid) shape" '"success":true'
+expect_status "register_user (duplicate)" 409 POST /register_user.php \
+    '{"username":"smoke_fan","password":"another-password"}'
+expect_status "register_user (short password)" 400 POST /register_user.php \
+    '{"username":"smoke_fan2","password":"short"}'
+expect_status "register_user (bad username)" 400 POST /register_user.php \
+    '{"username":"x","password":"fan-password-1"}'
+expect_status "register_user (missing field)" 400 POST /register_user.php '{"username":"smoke_fan"}'
+
+expect_status "create_session (valid)" 200 POST /create_session.php \
+    '{"username":"smoke_user","password":"smoke-password"}'
+expect_contains "create_session (valid) shape" '"verified":true'
+SESSION_ID="$(sed -n 's/.*"session_id":"\([^"]*\)".*/\1/p' "$BODY_FILE")"
+if [ -n "$SESSION_ID" ]; then
+    PASS=$((PASS + 1))
+    echo "  ok    create_session session_id present"
+else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL  create_session session_id missing: $(cat "$BODY_FILE")"
+fi
+expect_status "create_session (wrong password)" 200 POST /create_session.php \
+    '{"username":"smoke_user","password":"nope"}'
+expect_contains "create_session (wrong) shape" '"verified":false'
+expect_status "create_session (missing field)" 400 POST /create_session.php '{"username":"smoke_user"}'
+
+expect_status "me (valid session)" 200 POST /me.php "{\"session_id\":\"$SESSION_ID\"}"
+expect_contains "me shape (username)" '"username":"smoke_user"'
+expect_contains "me shape (artist_status)" '"artist_status":"none"'
+expect_status "me (unknown session)" 404 POST /me.php \
+    '{"session_id":"0000000000000000000000000000000000000000000000000000000000000000"}'
+expect_status "me (missing field)" 400 POST /me.php '{}'
+
+expect_status "request_artist_access (valid)" 200 POST /request_artist_access.php "{\"session_id\":\"$SESSION_ID\"}"
+expect_contains "request_artist_access shape" '"artist_status":"pending"'
+expect_status "request_artist_access (no-op when pending)" 200 POST /request_artist_access.php "{\"session_id\":\"$SESSION_ID\"}"
+expect_contains "request_artist_access (no-op) shape" '"artist_status":"pending"'
+expect_status "request_artist_access (unknown session)" 404 POST /request_artist_access.php \
+    '{"session_id":"0000000000000000000000000000000000000000000000000000000000000000"}'
+
+expect_status "logout (valid)" 200 POST /logout.php "{\"session_id\":\"$SESSION_ID\"}"
+expect_contains "logout shape" '"success":true'
+expect_status "logout (idempotent)" 200 POST /logout.php "{\"session_id\":\"$SESSION_ID\"}"
+expect_status "logout (missing field)" 400 POST /logout.php '{}'
+
 expect_status "track_event (valid)" 200 POST /track_event.php '{"page":"index","event":"pageview"}'
 expect_contains "track_event (valid) shape" '"success":true'
 expect_status "track_event (bad page)" 400 POST /track_event.php '{"page":"hacker","event":"pageview"}'

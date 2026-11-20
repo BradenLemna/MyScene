@@ -12,6 +12,9 @@
 //   POST /add_artist                 -> { success, id, message }
 //   POST /add_event                  -> { success, id, message }
 //
+// The write routes require a session cookie of a verified artist
+// (Batch 2): 401 when not logged in, 403 for fans/pending accounts.
+//
 // 400/404/409 answers from the PHP db-api are passed through to the client
 // with their original status (see services/dbApi.js); unreachable PHP layer
 // or timeouts surface as 502/504.
@@ -23,6 +26,7 @@ import { getTopGenre } from '../services/lastFm.js';
 import { searchPlace } from '../services/locationIQ.js';
 import { writeLimiter } from '../middleware/rateLimit.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { requireVerifiedArtist } from '../utils/session.js';
 import {
     floatField,
     optionalNumberQuery,
@@ -108,7 +112,7 @@ async function resolveCoordinates(body, city, region) {
     return (await geocodeOrNull(city, region)) ?? { latitude: null, longitude: null };
 }
 
-router.post('/add_artist', writeLimiter, asyncHandler(async (req, res) => {
+router.post('/add_artist', writeLimiter, requireVerifiedArtist, asyncHandler(async (req, res) => {
     const body = requireFields(req.body, [
         'artist_name',
         'location_city',
@@ -134,7 +138,7 @@ router.post('/add_artist', writeLimiter, asyncHandler(async (req, res) => {
     res.json(result);
 }));
 
-router.post('/add_event', writeLimiter, asyncHandler(async (req, res) => {
+router.post('/add_event', writeLimiter, requireVerifiedArtist, asyncHandler(async (req, res) => {
     const body = requireFields(req.body, [
         'artist_name',
         'venue_name',

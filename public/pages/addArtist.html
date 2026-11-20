@@ -3,6 +3,7 @@ File Name: addArtist.html
 Initial Implementation: Shayne Thompson, @whisperingcoder (Github)
 Continued Development: Braden Lemna, @BradenLemna (Github)
 Description: This is the page where artists can add their band.
+Redesign: Windows 98 desktop metaphor.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -10,102 +11,136 @@ Description: This is the page where artists can add their band.
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Add your band to MyScene and let the local scene find you.">
-  <meta name="theme-color" content="#FFF8EE">
-  <title>Add Artist — MyScene</title>
+  <meta name="theme-color" content="#008080">
+  <title>Add Artist &mdash; MyScene</title>
   <link rel="icon" type="image/png" href="../assets/icons/mySceneLogo.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="../style.css">
 </head>
 
-<body data-page="addArtist">
+<body data-page="addArtist" data-root="../">
 
   <a class="skipLink" href="#main">Skip to content</a>
   <div class="starfield" aria-hidden="true"></div>
 
-  <header>
-    <nav class="nav" aria-label="Main">
-      <div class="navLeft">
+  <div class="desktop">
+    <div class="window" id="mainWindow">
+      <div class="titleBar">
+        <img class="titleBarIcon" src="../assets/icons/mySceneLogo.png" alt=""
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'titleBarIcon emoji',textContent:'\u{1F3B8}'}))">
+        <span class="titleBarText">Add Artist &mdash; MyScene</span>
+        <span class="titleBarButtons">
+          <button class="tbBtn" type="button" aria-label="Minimize"><span class="glyph">&#9633;</span></button>
+          <button class="tbBtn" type="button" aria-label="Maximize"><span class="glyph">&#9633;</span></button>
+          <button class="tbBtn" type="button" aria-label="Close"><span class="glyph">&times;</span></button>
+        </span>
+      </div>
+
+      <div class="menuBar" aria-label="Menu">
+        <div class="menuWrap">
+          <span class="menu">File</span>
+          <div class="menuDrop" role="menu">
+            <a class="menuDropItem" href="../index.html">Home</a>
+            <a class="menuDropItem" href="addArtist.html">Add Artist&hellip;</a>
+            <a class="menuDropItem" href="login.html">Log In&hellip;</a>
+            <div class="menuDivider"></div>
+            <a class="menuDropItem" href="register.html">Create Account&hellip;</a>
+          </div>
+        </div>
+        <div class="menuWrap">
+          <span class="menu">Help</span>
+          <div class="menuDrop" role="menu">
+            <a class="menuDropItem" href="#" data-about>About MyScene</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <span class="toolbarGrip" aria-hidden="true"></span>
         <a class="btn ghost" href="../index.html">&larr; Back to MyScene</a>
-      </div>
-
-      <div class="logoContainer">
-        <a href="../index.html" class="brand" aria-label="MyScene home">
-          <img src="../assets/icons/mySceneLogo.png" class="logo" id="smallLogo" alt=""
-               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
-        </a>
-      </div>
-
-      <div class="navRight">
+        <span class="spacer"></span>
         <a class="loginLink" href="login.html">Log In</a>
       </div>
 
-      <button class="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-      </button>
+      <div class="winBody">
+        <main id="main">
+          <div class="add-artist-container">
+            <h1>Ready to grow your community? Add your band.</h1>
 
-      <div class="navMenu" id="navMenu">
-        <a class="btn ghost" href="../index.html">&larr; Back to MyScene</a>
-        <a class="loginLink" href="login.html">Log In</a>
+            <!-- Not logged in: a login prompt replaces the form (Batch 2 gating). -->
+            <div id="loginPrompt" class="formPanel" data-title="Log In Required" hidden>
+              <p class="formLead">Log in to add your band.</p>
+              <p class="formNote">Adding artists and events requires a MyScene account &mdash; artist access is verified by an admin.</p>
+              <a class="btn pink" href="login.html">Log In</a>
+              <a class="btn ghost" href="register.html">Create an account</a>
+            </div>
+
+            <!-- Logged in but not a verified artist: request access (Batch 2). -->
+            <div id="artistAccess" class="formPanel" data-title="Artist Access" hidden>
+              <p class="formLead" id="artistAccessText">Request artist access to add your band.</p>
+              <button id="requestAccessButton" class="btn pink" type="button">Request artist access</button>
+              <p id="pendingNote" class="formNote" hidden>Pending &mdash; an admin will verify you. You can add your band once you&rsquo;re verified.</p>
+            </div>
+
+            <!-- Verified artists: the submission form. -->
+            <!-- This is where the user can add their band! -->
+            <div id="bandSubmission" class="formPanel" data-title="Add Your Band">
+
+              <div class="form-group">
+                <label for="bandName">Name of band</label>
+                <input type="text" id="bandName" placeholder="e.g. Auntie Aircraft" required>
+              </div>
+
+              <div class="form-group">
+                <label for="instagramHandle">Instagram handle</label>
+                <input type="text" id="instagramHandle" placeholder="@yourband" autocomplete="off">
+              </div>
+
+              <div class="form-group">
+                <label for="bandGenre">Genre</label>
+                <input type="text" id="bandGenre" list="genreList" placeholder="e.g. Rock, Indie, Punk..." required>
+                <datalist id="genreList"></datalist>
+                <p id="genreNote" class="formNote" hidden>Genre suggestions are unavailable right now &mdash; type a genre.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="bandCity">City</label>
+                <input type="text" id="bandCity" placeholder="e.g. Fayetteville" required>
+              </div>
+
+              <div class="form-group">
+                <label for="bandState">State</label>
+                <input type="text" id="bandState" placeholder="e.g. Arkansas" required>
+              </div>
+
+              <!-- Submit Button -->
+              <button id="addBandButton" class="btn pink" type="button">Add to MyScene</button>
+              <p class="formHint">Name, city, state, and genre are required.</p>
+              <p id="addSuccessNote" class="formNote" hidden></p>
+            </div>
+          </div>
+        </main>
+
+        <footer>
+          <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+        </footer>
       </div>
-    </nav>
-  </header>
 
-  <main id="main">
-    <div class="add-artist-container">
-      <h1>Ready to grow your community? Add your band.</h1>
-
-      <!-- This is where the user can add their band! -->
-      <div id="bandSubmission" class="formPanel">
-
-        <div class="form-group">
-          <label for="bandName">Name of band</label>
-          <input type="text" id="bandName" placeholder="e.g. Auntie Aircraft" required>
-        </div>
-
-        <div class="form-group">
-          <label for="instagramHandle">Instagram handle</label>
-          <input type="text" id="instagramHandle" placeholder="@yourband" autocomplete="off">
-        </div>
-
-        <div class="form-group">
-          <label for="bandGenre">Genre</label>
-          <input type="text" id="bandGenre" list="genreList" placeholder="e.g. Rock, Indie, Punk..." required>
-          <datalist id="genreList"></datalist>
-          <p id="genreNote" class="formNote" hidden>Genre suggestions are unavailable right now — type a genre.</p>
-        </div>
-
-        <div class="form-group">
-          <label for="bandCity">City</label>
-          <input type="text" id="bandCity" placeholder="e.g. Fayetteville" required>
-        </div>
-
-        <div class="form-group">
-          <label for="bandState">State</label>
-          <input type="text" id="bandState" placeholder="e.g. Arkansas" required>
-        </div>
-
-        <!-- Submit Button -->
-        <button id="addBandButton" class="btn pink" type="button">Add to MyScene</button>
-        <p class="formHint">Name, city, state, and genre are required.</p>
-        <p id="addSuccessNote" class="formNote" hidden></p>
+      <div class="statusBar">
+        <span class="statusPanel grow">Ready</span>
+        <span class="statusPanel">MyScene</span>
       </div>
     </div>
-  </main>
+  </div>
 
   <script src="../js/ui.js"></script>
+  <script src="../js/session.js"></script>
   <script src="../js/track.js"></script>
   <script src="../js/addArtist.js"></script>
-
-  <footer>
-    <div class="footerDivider"></div>
-    <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
-  </footer>
 
 </body>
 </html>

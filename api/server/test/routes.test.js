@@ -74,6 +74,8 @@ test('GET /getGenreList proxies the db-api', async () => {
 test('POST /add_artist geocodes missing coordinates and proxies the insert', async () => {
     const res = await request(app)
         .post('/add_artist')
+        // Batch 2: the write routes require a verified-artist session.
+        .set('Cookie', 'myscene_session=artist-session')
         .send({
             artist_name: 'Fresh Band',
             location_city: 'Fayetteville',
@@ -90,6 +92,7 @@ test('POST /add_artist geocodes missing coordinates and proxies the insert', asy
 test('POST /add_artist passes through a duplicate 409', async () => {
     const res = await request(app)
         .post('/add_artist')
+        .set('Cookie', 'myscene_session=artist-session')
         .send({
             artist_name: 'Taken Name',
             location_city: 'Fayetteville',
@@ -103,7 +106,10 @@ test('POST /add_artist passes through a duplicate 409', async () => {
 });
 
 test('POST /add_artist without required fields answers 400', async () => {
-    const res = await request(app).post('/add_artist').send({ artist_name: 'Incomplete' });
+    const res = await request(app)
+        .post('/add_artist')
+        .set('Cookie', 'myscene_session=artist-session')
+        .send({ artist_name: 'Incomplete' });
     assert.equal(res.status, 400);
     assert.match(res.body.error, /Missing required field/);
 });
@@ -111,6 +117,7 @@ test('POST /add_artist without required fields answers 400', async () => {
 test('POST /add_event proxies the insert', async () => {
     const res = await request(app)
         .post('/add_event')
+        .set('Cookie', 'myscene_session=artist-session')
         .send({
             artist_name: 'The Belladonnas',
             venue_name: 'Test Hall',
@@ -125,6 +132,7 @@ test('POST /add_event proxies the insert', async () => {
 test('POST /add_event passes through a duplicate 409', async () => {
     const res = await request(app)
         .post('/add_event')
+        .set('Cookie', 'myscene_session=artist-session')
         .send({
             artist_name: 'The Belladonnas',
             venue_name: 'Dup Venue',

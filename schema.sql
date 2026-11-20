@@ -49,8 +49,16 @@ CREATE TABLE Users (
     -- legacy plaintext rows to bcrypt on first login, which fails/truncates
     -- in a VARCHAR(20) column.
     user_password VARCHAR(255) NOT NULL,
+    -- Batch 2 auth flags (live-database version:
+    -- migrations/003_auth_sessions.sql).
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    artist_status ENUM('none','pending','verified') NOT NULL DEFAULT 'none',
 
-    PRIMARY KEY (username, user_password)
+    PRIMARY KEY (username, user_password),
+    -- username is unique in practice; the composite PK above does not
+    -- enforce it, so register_user.php's duplicate check needs this
+    -- constraint as a race-proof backstop (like uq_artists_name).
+    CONSTRAINT uq_users_username UNIQUE (username)
 );
 
 -- Privacy-friendly analytics counter (EXP-002) — the live-database version
@@ -67,13 +75,26 @@ CREATE TABLE AnalyticsEvents (
     INDEX idx_analytics_event_created (event, created_at)
 );
 
+-- DB-backed login sessions (Batch 2) — the live-database version of this
+-- table is migrations/003_auth_sessions.sql. 30-day expiry, managed by
+-- api/db/auth.php (create_session / session_user / delete_session).
+DROP TABLE IF EXISTS Sessions;
+
+CREATE TABLE Sessions (
+    session_id CHAR(64) PRIMARY KEY,
+    username VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    INDEX idx_sessions_username (username)
+);
+
 -- Example Input
-INSERT INTO Users VALUES ("mrpepsi", "12345");
-INSERT INTO Users VALUES ("whisperingcoder", "23456");
-INSERT INTO Users VALUES ("lemdog", "34567");
-INSERT INTO Users VALUES ("kcudzich", "45678");
-INSERT INTO Users VALUES ("kitkat", "56789");
-INSERT INTO Users VALUES ("katsu18", "67890");
+INSERT INTO Users (username, user_password) VALUES ("mrpepsi", "12345");
+INSERT INTO Users (username, user_password) VALUES ("whisperingcoder", "23456");
+INSERT INTO Users (username, user_password) VALUES ("lemdog", "34567");
+INSERT INTO Users (username, user_password) VALUES ("kcudzich", "45678");
+INSERT INTO Users (username, user_password) VALUES ("kitkat", "56789");
+INSERT INTO Users (username, user_password) VALUES ("katsu18", "67890");
 
 INSERT INTO Artists VALUES (NULL, "The Belladonnas", "Fayetteville", "AR", -94.1574, 36.0626, "Rock", "@thebelladonnasband", "belladonnas.jpg", TRUE);
 INSERT INTO Artists VALUES (NULL, "Mount Comfort", "Fayetteville", "AR", -94.1574, 36.0626, "Indie", "@mt.comfort", "belladonnas.jpg", TRUE);

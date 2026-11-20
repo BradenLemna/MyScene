@@ -34,5 +34,10 @@ export const dbApi = {
     getNearbyArtists: (latitude, longitude, radius) =>
         callDb('get_nearby_artists.php', { latitude, longitude, radius }),
     verifyUser: (username, password) => callDb('verify_user.php', { username, password }),
+    registerUser: (username, password) => callDb('register_user.php', { username, password }),
+    createSession: (username, password) => callDb('create_session.php', { username, password }),
+    logout: (sessionId) => callDb('logout.php', { session_id: sessionId }),
+    me: (sessionId) => callDb('me.php', { session_id: sessionId }),
+    requestArtistAccess: (sessionId) => callDb('request_artist_access.php', { session_id: sessionId }),
     trackEvent: (payload) => callDb('track_event.php', payload),
 };

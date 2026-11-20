@@ -32,6 +32,7 @@ before(async () => {
             RATE_LIMIT_DEFAULT_MAX: '100000', // keep the global limiter out of the way
             RATE_LIMIT_AUTH_MAX: '3',
             RATE_LIMIT_WRITE_MAX: '3',
+            RATE_LIMIT_REGISTER_MAX: '3',
             RATE_LIMIT_TRACK_MAX: '2',
         },
     });
@@ -73,15 +74,25 @@ test('add_artist and add_event share the write budget', async () => {
         latitude: 36.0,
         longitude: -94.0,
     };
+    // Batch 2: the write routes gate on a verified-artist session first.
+    const session = { Cookie: 'myscene_session=artist-session' };
 
-    assert.equal((await request(app).post('/add_artist').send(artistBody)).status, 200);
-    assert.equal((await request(app).post('/add_event').send(eventBody)).status, 200);
-    assert.equal((await request(app).post('/add_artist').send(artistBody)).status, 200);
-    await expect429(await request(app).post('/add_event').send(eventBody), 'add_event');
+    assert.equal((await request(app).post('/add_artist').set(session).send(artistBody)).status, 200);
+    assert.equal((await request(app).post('/add_event').set(session).send(eventBody)).status, 200);
+    assert.equal((await request(app).post('/add_artist').set(session).send(artistBody)).status, 200);
+    await expect429(await request(app).post('/add_event').set(session).send(eventBody), 'add_event');
 });
 
 test('track is limited to the beacon budget', async () => {
     assert.equal((await request(app).post('/track').send({ page: 'index', event: 'pageview' })).status, 200);
     assert.equal((await request(app).post('/track').send({ page: 'index', event: 'pageview' })).status, 200);
     await expect429(await request(app).post('/track').send({ page: 'index', event: 'pageview' }), 'track');
+});
+
+test('register is limited to the register budget', async () => {
+    const body = { username: 'newfan', password: 'longenough' };
+    for (let i = 0; i < 3; i += 1) {
+        assert.equal((await request(app).post('/register').send(body)).status, 200);
+    }
+    await expect429(await request(app).post('/register').send(body), 'register');
 });

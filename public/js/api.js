@@ -21,10 +21,13 @@ const API_BASE = (typeof window !== 'undefined' && window.MYSCENE_API_BASE)
  * Throws an Error carrying the server's error message when the response is
  * not ok, so callers can surface the real reason instead of crashing on
  * an undefined field.
+ *
+ * credentials: 'include' sends the httpOnly myscene_session cookie on
+ * cross-origin calls (myscene.live -> api.myscene.live, Batch 2 auth).
  */
 async function apiFetch(path, options)
 {
-    const response = await fetch(API_BASE + path, options);
+    const response = await fetch(API_BASE + path, { credentials: "include", ...options });
 
     let data = null;
     try {

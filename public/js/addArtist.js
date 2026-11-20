@@ -11,6 +11,76 @@ function toast(message, kind = 'info') {
     else alert(message);
 }
 
+// ---------- artist gating (Batch 2) ----------
+// The API now requires a verified-artist session for /add_artist. The page
+// mirrors the three states client-side: guest -> login prompt, fan/pending
+// -> request-access panel, verified -> the form. window.mysceneSession
+// (js/session.js, loaded first) is the source of truth.
+function showPanel(id) {
+    ["loginPrompt", "artistAccess", "bandSubmission"].forEach(function (panel) {
+        document.getElementById(panel).hidden = panel !== id;
+    });
+}
+
+function setPendingState() {
+    document.getElementById("requestAccessButton").hidden = true;
+    document.getElementById("pendingNote").hidden = false;
+    document.getElementById("artistAccessText").textContent = "Your artist access request is pending.";
+}
+
+function renderArtistState(me) {
+    if (!me) {
+        showPanel("loginPrompt");
+        return;
+    }
+    if (me.artist_status === "verified") {
+        showPanel("bandSubmission");
+        return;
+    }
+    showPanel("artistAccess");
+    if (me.artist_status === "pending") {
+        setPendingState();
+    }
+}
+
+window.mysceneSession.getMe().then(renderArtistState);
+
+document.getElementById("requestAccessButton").addEventListener("click", function() {
+    const button = document.getElementById("requestAccessButton");
+    button.disabled = true;
+    const originalLabel = button.textContent;
+    button.textContent = "Requesting...";
+
+    fetch(API_BASE + "/request_artist_access", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        credentials: "include",
+    })
+      .then(async response => {
+          // The API answers errors as {"error": "..."} with a 4xx status —
+          // surface the real message instead of a generic failure alert.
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+              throw new Error(data.error || `The server rejected the request (HTTP ${response.status}).`);
+          }
+          return data;
+      })
+      .then(() => {
+          setPendingState();
+          toast("Request sent — an admin will verify you.", "success");
+      })
+      .catch(err => {
+          console.error("Artist access request failed:", err);
+          toast("Couldn't send the request: " + err.message, "error");
+      })
+      .finally(() => {
+          button.disabled = false;
+          button.textContent = originalLabel;
+      });
+});
+
 function escapeHtml(value) {
     return String(value ?? "")
         .replaceAll("&", "&amp;")

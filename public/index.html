@@ -4,19 +4,20 @@ File Name: index.html
 Initial Implementation: Shayne Thompson, @whisperingcoder (Github)
 Continued Development: Braden Lemna, @BradenLemna (Github)
 Description: Homepage for MyScene showcasing smaller local artists.
+Redesign: Windows 98 desktop metaphor (teal desktop, window chrome, taskbar).
 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="MyScene connects you with the local artists shaping your city's underground scene. Search bands, filter by genre, and explore shows near you.">
-  <meta name="theme-color" content="#FFF8EE">
+  <meta name="theme-color" content="#008080">
   <title>MyScene — Find Local Bands</title>
   <link rel="icon" type="image/png" href="assets/icons/mySceneLogo.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
 
@@ -33,178 +34,218 @@ Description: Homepage for MyScene showcasing smaller local artists.
   <a class="skipLink" href="#main">Skip to content</a>
   <div class="starfield" aria-hidden="true"></div>
 
-  <header>
-    <nav class="nav" aria-label="Main">
-      <div class="navLeft">
+  <div class="desktop">
+    <!-- Desktop icons are injected here by js/ui.js -->
+
+    <div class="window" id="mainWindow">
+      <!-- Title bar -->
+      <div class="titleBar">
+        <img class="titleBarIcon" src="assets/icons/mySceneLogo.png" alt=""
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'titleBarIcon emoji',textContent:'\u{1F3B5}'}))">
+        <span class="titleBarText">MyScene &mdash; Find Local Bands</span>
+        <span class="titleBarButtons">
+          <button class="tbBtn" type="button" aria-label="Minimize"><span class="glyph">&#9633;</span></button>
+          <button class="tbBtn" type="button" aria-label="Maximize"><span class="glyph">&#9633;</span></button>
+          <button class="tbBtn" type="button" aria-label="Close"><span class="glyph">&times;</span></button>
+        </span>
+      </div>
+
+      <!-- Menu bar -->
+      <div class="menuBar" aria-label="Menu">
+        <div class="menuWrap">
+          <span class="menu">File</span>
+          <div class="menuDrop" role="menu">
+            <a class="menuDropItem" href="index.html">Home</a>
+            <a class="menuDropItem" href="pages/addArtist.html">Add Artist&hellip;</a>
+            <a class="menuDropItem" href="pages/login.html">Log In&hellip;</a>
+            <div class="menuDivider"></div>
+            <a class="menuDropItem" href="pages/register.html">Create Account&hellip;</a>
+          </div>
+        </div>
+        <div class="menuWrap">
+          <span class="menu">View</span>
+          <div class="menuDrop" role="menu">
+            <a class="menuDropItem" href="#featuredArtists">Featured Artists</a>
+            <a class="menuDropItem" href="#locateSection">Browse by Location</a>
+          </div>
+        </div>
+        <div class="menuWrap">
+          <span class="menu">Help</span>
+          <div class="menuDrop" role="menu">
+            <a class="menuDropItem" href="#" data-about>About MyScene</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar (real navigation) -->
+      <div class="toolbar">
+        <span class="toolbarGrip" aria-hidden="true"></span>
         <a class="btn cyan" href="pages/addArtist.html">+ Add Artist</a>
-      </div>
-
-      <div class="logoContainer">
-        <a href="index.html" class="brand" aria-label="MyScene home">
-          <img src="assets/icons/mySceneLogo.png" class="logo" alt=""
-               onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
-        </a>
-      </div>
-
-      <div class="navRight">
+        <span class="spacer"></span>
         <a class="loginLink" href="pages/login.html">Log In</a>
       </div>
 
-      <button class="navToggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navMenu">
-        <span class="bar"></span>
-        <span class="bar"></span>
-        <span class="bar"></span>
-      </button>
-
-      <div class="navMenu" id="navMenu">
-        <a class="btn cyan" href="pages/addArtist.html">+ Add Artist</a>
-        <a class="loginLink" href="pages/login.html">Log In</a>
-      </div>
-    </nav>
-  </header>
-
-  <div id="apiOfflineBanner" class="offlineBanner" role="status" hidden>
-    <p>Scene data is temporarily offline — search, the genre list, and the map will be back shortly.</p>
-  </div>
-
-  <main id="main">
-    <!-- Hero + primary artist search -->
-    <section class="hero" aria-label="Search">
-      <img src="assets/icons/mySceneLogo.png" class="heroLogo" alt="MyScene logo"
-           onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logoWordmark',textContent:'MyScene'}))">
-
-      <h1 class="heroTag">Find your people. Grow the scene.</h1>
-      <p class="heroSub">
-        MyScene connects you with the local artists shaping your city's underground.
-        Search a band, filter by genre, and map the scene around you.
-      </p>
-
-      <div class="searchEngine">
-        <div class="searchEngineTop">
-          <input type="text" placeholder="Enter artist here..." id="homeSearch" aria-label="Search artists by name" autocomplete="off">
-          <button id="searchButton" aria-label="Search">
-            <img src="assets/icons/search-circle-svgrepo-com.svg" id="searchButtonImg" alt="">
-          </button>
+      <!-- Window body -->
+      <div class="winBody">
+        <div id="apiOfflineBanner" class="offlineBanner" role="status" hidden>
+          <p>Scene data is temporarily offline &mdash; search, the genre list, and the map will be back shortly.</p>
         </div>
-        <div class="searchEngineBot">
-          <button id="filterButton" type="button" aria-expanded="false" aria-controls="filterOptions">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8L3 5z"/></svg>
-            Filters
-            <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-          </button>
-        </div>
-        <div id="filterOptions">
-          <div class="filterCategory">
-            <button type="button" class="filterToggle" aria-expanded="false" aria-controls="genrefilter">
-              Genre
-              <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-            <!-- Populated at runtime from the /getGenreList endpoint (see index.js) -->
-            <div class="filterSubmenu" id="genrefilter"></div>
-          </div>
-          <div class="filterCategory soon">
-            <button type="button" class="filterToggle" aria-expanded="false" aria-controls="datesfilter" aria-disabled="true">
-              Dates <span class="soonTag">coming soon</span>
-              <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-            <div class="filterSubmenu" id="datesfilter" aria-hidden="true">
-              <label><input type="checkbox" value="thisWeek" disabled> This week</label>
-              <label><input type="checkbox" value="thisMonth" disabled> This month</label>
-              <label><input type="checkbox" value="anytime" disabled> Anytime</label>
+
+        <main id="main">
+          <!-- Hero + primary artist search -->
+          <section class="hero" aria-label="Search">
+            <img src="assets/icons/mySceneLogo.png" class="heroLogo" alt="MyScene logo"
+                 onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'heroWordmark',textContent:'MyScene'}))">
+
+            <h1 class="heroTag">Find your people. Grow the scene.</h1>
+            <p class="heroSub">
+              MyScene connects you with the local artists shaping your city's underground.
+              Search a band, filter by genre, and map the scene around you.
+            </p>
+
+            <div class="searchEngine">
+              <div class="searchEngineTop">
+                <input type="text" placeholder="Enter artist here..." id="homeSearch" aria-label="Search artists by name" autocomplete="off">
+                <button id="searchButton" aria-label="Search">
+                  <img src="assets/icons/search-circle-svgrepo-com.svg" id="searchButtonImg" alt="">
+                </button>
+              </div>
+              <div class="searchEngineBot">
+                <button id="filterButton" type="button" aria-expanded="false" aria-controls="filterOptions">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8L3 5z"/></svg>
+                  Filters
+                  <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+              </div>
+              <div id="filterOptions">
+                <div class="filterCategory">
+                  <button type="button" class="filterToggle" aria-expanded="false" aria-controls="genrefilter">
+                    Genre
+                    <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  <!-- Populated at runtime from the /getGenreList endpoint (see index.js) -->
+                  <div class="filterSubmenu" id="genrefilter"></div>
+                </div>
+                <div class="filterCategory soon">
+                  <button type="button" class="filterToggle" aria-expanded="false" aria-controls="datesfilter" aria-disabled="true">
+                    Dates <span class="soonTag">coming soon</span>
+                    <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  <div class="filterSubmenu" id="datesfilter" aria-hidden="true">
+                    <label><input type="checkbox" value="thisWeek" disabled> This week</label>
+                    <label><input type="checkbox" value="thisMonth" disabled> This month</label>
+                    <label><input type="checkbox" value="anytime" disabled> Anytime</label>
+                  </div>
+                </div>
+                <div class="filterCategory soon">
+                  <button type="button" class="filterToggle" aria-expanded="false" aria-controls="sizefilter" aria-disabled="true">
+                    Venue size <span class="soonTag">coming soon</span>
+                    <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                  <div class="filterSubmenu" id="sizefilter" aria-hidden="true">
+                    <label><input type="checkbox" value="small" disabled> Small</label>
+                    <label><input type="checkbox" value="medium" disabled> Medium</label>
+                    <label><input type="checkbox" value="large" disabled> Large</label>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="filterCategory soon">
-            <button type="button" class="filterToggle" aria-expanded="false" aria-controls="sizefilter" aria-disabled="true">
-              Venue size <span class="soonTag">coming soon</span>
-              <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-            </button>
-            <div class="filterSubmenu" id="sizefilter" aria-hidden="true">
-              <label><input type="checkbox" value="small" disabled> Small</label>
-              <label><input type="checkbox" value="medium" disabled> Medium</label>
-              <label><input type="checkbox" value="large" disabled> Large</label>
+
+            <div class="heroStats">
+              <div class="heroStat"><b id="statArtists">&mdash;</b><span>Local artists</span></div>
+              <div class="heroStat"><b id="statGenres">&mdash;</b><span>Genres tracked</span></div>
             </div>
-          </div>
-        </div>
+          </section>
+
+          <!-- Featured Artists -->
+          <section id="featuredArtists" data-reveal aria-labelledby="featuredHeading">
+            <div class="sectionHead">
+              <div>
+                <span class="kicker">Hand-picked</span>
+                <h2 id="featuredHeading">Featured Artists</h2>
+              </div>
+            </div>
+            <div class="artistGrid" id="featuredArtistsGrid"></div>
+          </section>
+
+          <!-- Search results (shown in place of Featured Artists + map when a search runs) -->
+          <section id="searchResults" style="display:none;" aria-labelledby="resultsHeading">
+            <div class="sectionHead">
+              <div>
+                <span class="kicker">Search results</span>
+                <h2 id="resultsHeading">Search Results</h2>
+              </div>
+              <p id="resultsCount"></p>
+            </div>
+            <div class="artistGrid" id="results"></div>
+          </section>
+
+          <!-- Location search + map -->
+          <section id="locateSection" data-reveal aria-labelledby="locateHeading">
+            <div class="sectionHead">
+              <div>
+                <span class="kicker">Map the scene</span>
+                <h2 id="locateHeading">Browse By Location</h2>
+              </div>
+              <p>Set a city and radius</p>
+            </div>
+
+            <div class="locateShell">
+              <div class="searchEngine">
+                <p class="locateLabel">City</p>
+                <div class="searchEngineTop">
+                  <input type="text" placeholder="Enter city here..." id="citySearch" aria-label="City" autocomplete="off">
+                  <p id="cityNote" class="formNote" hidden>City suggestions are unavailable right now &mdash; type a city and press the arrow.</p>
+                </div>
+                <p class="locateLabel">Radius (miles)</p>
+                <div class="searchEngineRadius">
+                  <input type="text" value="10" id="radiusSearch" aria-label="Radius in miles" inputmode="decimal">
+                  <button id="radiusEnterButton" aria-label="Search by location">
+                    <img src="assets/icons/search-circle-svgrepo-com.svg" id="radiusSearchImg" alt="">
+                  </button>
+                </div>
+              </div>
+
+              <div id="map" role="application" aria-label="Map of nearby artists"></div>
+              <p id="mapNote" class="mapNote" aria-live="polite"></p>
+            </div>
+          </section>
+        </main>
+
+        <footer>
+          <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
+        </footer>
       </div>
 
-      <div class="heroStats">
-        <div class="heroStat"><b id="statArtists">—</b><span>Local artists</span></div>
-        <div class="heroStat"><b id="statGenres">—</b><span>Genres tracked</span></div>
+      <!-- Status bar -->
+      <div class="statusBar">
+        <span class="statusPanel grow">Ready</span>
+        <span class="statusPanel">MyScene</span>
       </div>
-    </section>
-
-    <!-- Featured Artists -->
-    <section id="featuredArtists" data-reveal aria-labelledby="featuredHeading">
-      <div class="sectionHead">
-        <div>
-          <span class="kicker">Hand-picked</span>
-          <h2 id="featuredHeading">Featured Artists</h2>
-        </div>
-      </div>
-      <div class="artistGrid" id="featuredArtistsGrid"></div>
-    </section>
-
-    <!-- Search results (shown in place of Featured Artists + map when a search runs) -->
-    <section id="searchResults" style="display:none;" aria-labelledby="resultsHeading">
-      <div class="sectionHead">
-        <div>
-          <span class="kicker">Search results</span>
-          <h2 id="resultsHeading">Search Results</h2>
-        </div>
-        <p id="resultsCount"></p>
-      </div>
-      <div class="artistGrid" id="results"></div>
-    </section>
-
-    <!-- Location search + map -->
-    <section id="locateSection" data-reveal aria-labelledby="locateHeading">
-      <div class="sectionHead">
-        <div>
-          <span class="kicker">Map the scene</span>
-          <h2 id="locateHeading">Browse By Location</h2>
-        </div>
-        <p>Set a city and radius</p>
-      </div>
-
-      <div class="locateShell">
-        <div class="searchEngine">
-          <p class="locateLabel">City</p>
-          <div class="searchEngineTop">
-            <input type="text" placeholder="Enter city here..." id="citySearch" aria-label="City" autocomplete="off">
-            <p id="cityNote" class="formNote" hidden>City suggestions are unavailable right now — type a city and press the arrow.</p>
-          </div>
-          <p class="locateLabel">Radius (miles)</p>
-          <div class="searchEngineRadius">
-            <input type="text" value="10" id="radiusSearch" aria-label="Radius in miles" inputmode="decimal">
-            <button id="radiusEnterButton" aria-label="Search by location">
-              <img src="assets/icons/search-circle-svgrepo-com.svg" id="radiusSearchImg" alt="">
-            </button>
-          </div>
-        </div>
-
-        <div id="map" role="application" aria-label="Map of nearby artists"></div>
-        <p id="mapNote" class="mapNote" aria-live="polite"></p>
-      </div>
-    </section>
-  </main>
-
-  <!-- Quick-view modal -->
-  <div class="modalOverlay" id="modalOverlay">
-    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <button class="modalClose" id="modalClose" aria-label="Close">&times;</button>
-      <div class="modalTags" id="modalTags"></div>
-      <h3 id="modalTitle">Artist name</h3>
-      <p id="modalBio"></p>
-      <button class="btn pink" id="viewProfileButton">View Full Profile</button>
     </div>
   </div>
 
-  <footer>
-    <div class="footerDivider"></div>
-    <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team</p>
-  </footer>
+  <!-- Quick-view modal (Win98 dialog) -->
+  <div class="modalOverlay" id="modalOverlay">
+    <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="titleBar">
+        <span class="titleBarIcon emoji" aria-hidden="true">&#127925;</span>
+        <span class="titleBarText">Artist Information</span>
+        <span class="titleBarButtons">
+          <button class="modalClose" id="modalClose" aria-label="Close">&times;</button>
+        </span>
+      </div>
+      <div class="dialogBody">
+        <div class="modalTags" id="modalTags"></div>
+        <h3 id="modalTitle">Artist name</h3>
+        <p id="modalBio"></p>
+        <button class="btn pink" id="viewProfileButton">View Full Profile</button>
+      </div>
+    </div>
+  </div>
 
   <script src="js/ui.js"></script>
+  <script src="js/session.js"></script>
   <script src="js/track.js"></script>
   <script type="module" src="js/index.js"></script>
 </body>
