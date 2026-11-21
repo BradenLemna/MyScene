@@ -144,10 +144,39 @@ export async function startMockDbApi() {
                 }
                 break;
             case 'track_event':
-                if (!['index', 'viewArtist', 'addArtist', 'login', 'register'].includes(parsed.page)) {
+                if (!['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics'].includes(parsed.page)) {
                     json(res, 400, { error: 'Field "page" is not a known page.' });
                 } else {
                     json(res, 200, { success: true });
+                }
+                break;
+            case 'get_analytics_summary':
+                json(res, 200, {
+                    days: typeof parsed.days === 'number' ? parsed.days : 30,
+                    totals: { pageviews: 12, searches: 5, profile_views: 3 },
+                    top_artists: [{ artist: 'The Belladonnas', views: 3 }],
+                    top_genres: [{ genre: 'Rock', searches: 2 }],
+                    daily_pageviews: [{ date: '2026-11-21', pageviews: 12 }],
+                });
+                break;
+            case 'get_pending_artists':
+                json(res, 200, {
+                    pending_artists: [
+                        { username: 'pendinguser', created_at: '2026-11-20 12:00:00' },
+                    ],
+                });
+                break;
+            case 'set_artist_status':
+                if (parsed.status !== 'verified' && parsed.status !== 'none') {
+                    json(res, 400, { error: 'Field "status" must be one of: verified, none.' });
+                } else if (parsed.target_username === 'ghost') {
+                    json(res, 404, { error: 'User not found.' });
+                } else {
+                    json(res, 200, {
+                        success: true,
+                        username: parsed.target_username,
+                        artist_status: parsed.status,
+                    });
                 }
                 break;
             default:

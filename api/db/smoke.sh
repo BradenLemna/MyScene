@@ -143,6 +143,18 @@ expect_contains() {
     fi
 }
 
+# expect_not_contains LABEL PATTERN — the body of the last request must NOT match.
+expect_not_contains() {
+    local label="$1" pattern="$2"
+    if grep -q "$pattern" "$BODY_FILE"; then
+        FAIL=$((FAIL + 1))
+        echo "  FAIL  $label — body unexpectedly matches '$pattern': $(cat "$BODY_FILE")"
+    else
+        PASS=$((PASS + 1))
+        echo "  ok    $label"
+    fi
+}
+
 log "Running endpoint checks"
 
 expect_status "get_artist_amount" 200 GET /get_artist_amount.php
@@ -225,6 +237,56 @@ expect_status "request_artist_access (no-op when pending)" 200 POST /request_art
 expect_contains "request_artist_access (no-op) shape" '"artist_status":"pending"'
 expect_status "request_artist_access (unknown session)" 404 POST /request_artist_access.php \
     '{"session_id":"0000000000000000000000000000000000000000000000000000000000000000"}'
+
+# --- admin dashboard (Batch 3): verification queue + analytics ---
+# smoke_user is pending at this point (request_artist_access above).
+expect_status "get_pending_artists (pending user present)" 200 POST /get_pending_artists.php '{}'
+expect_contains "get_pending_artists shape" '"pending_artists"'
+expect_contains "get_pending_artists lists smoke_user" '"username":"smoke_user"'
+expect_contains "get_pending_artists has created_at" '"created_at"'
+
+expect_status "set_artist_status (approve)" 200 POST /set_artist_status.php \
+    '{"target_username":"smoke_user","status":"verified"}'
+expect_contains "set_artist_status (approve) shape" '"success":true'
+expect_contains "set_artist_status (approve) status" '"artist_status":"verified"'
+expect_status "me (after approve) shows verified" 200 POST /me.php "{\"session_id\":\"$SESSION_ID\"}"
+expect_contains "me (after approve) artist_status" '"artist_status":"verified"'
+expect_status "get_pending_artists (empty after approve)" 200 POST /get_pending_artists.php '{}'
+expect_not_contains "get_pending_artists no longer lists smoke_user" '"username":"smoke_user"'
+
+expect_status "set_artist_status (reject)" 200 POST /set_artist_status.php \
+    '{"target_username":"smoke_user","status":"none"}'
+expect_contains "set_artist_status (reject) status" '"artist_status":"none"'
+expect_status "set_artist_status (bad status)" 400 POST /set_artist_status.php \
+    '{"target_username":"smoke_user","status":"hacker"}'
+expect_status "set_artist_status (bad username)" 400 POST /set_artist_status.php \
+    '{"target_username":"x","status":"verified"}'
+expect_status "set_artist_status (unknown user)" 404 POST /set_artist_status.php \
+    '{"target_username":"no_such_user_xyz","status":"verified"}'
+expect_status "set_artist_status (missing field)" 400 POST /set_artist_status.php \
+    '{"target_username":"smoke_user"}'
+
+# Seed a few analytics events through the real endpoint, then query the
+# summary (all inside the 30-day window).
+expect_status "track_event (search_success)" 200 POST /track_event.php \
+    '{"page":"index","event":"search_success","detail":"genre:Rock|results:3"}'
+expect_status "track_event (profile_view)" 200 POST /track_event.php \
+    '{"page":"viewArtist","event":"profile_view","detail":"artist:Smoke Test Band"}'
+expect_status "track_event (analytics page)" 200 POST /track_event.php \
+    '{"page":"analytics","event":"pageview"}'
+
+expect_status "get_analytics_summary (30d)" 200 POST /get_analytics_summary.php '{"days":30}'
+expect_contains "get_analytics_summary totals" '"pageviews"'
+expect_contains "get_analytics_summary searches" '"searches"'
+expect_contains "get_analytics_summary profile_views" '"profile_views"'
+expect_contains "get_analytics_summary top_artists" '"top_artists"'
+expect_contains "get_analytics_summary top artist row" '"artist":"Smoke Test Band"'
+expect_contains "get_analytics_summary top_genres" '"top_genres"'
+expect_contains "get_analytics_summary top genre row" '"genre":"Rock"'
+expect_contains "get_analytics_summary daily series" '"daily_pageviews"'
+expect_status "get_analytics_summary (default days)" 200 POST /get_analytics_summary.php '{}'
+expect_status "get_analytics_summary (bad days)" 400 POST /get_analytics_summary.php '{"days":7}'
+expect_status "get_analytics_summary (non-numeric days)" 400 POST /get_analytics_summary.php '{"days":"soon"}'
 
 expect_status "logout (valid)" 200 POST /logout.php "{\"session_id\":\"$SESSION_ID\"}"
 expect_contains "logout shape" '"success":true'

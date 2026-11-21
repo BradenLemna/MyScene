@@ -127,3 +127,24 @@ export async function addEvent(event) // Calls the server to add an event ({arti
         body: JSON.stringify(event),
     });
 }
+
+export async function getAnalyticsSummary(days) // Calls the server to get the analytics summary for the admin dashboard ({days, totals, top_artists, top_genres, daily_pageviews})
+{
+    const data = await apiFetch('/getAnalyticsSummary?days=' + encodeURIComponent(days));
+    return data
+}
+
+export async function getPendingArtists() // Calls the server to get the pending artist requests ({pending_artists: [{username, created_at}]}) — admin only
+{
+    const data = await apiFetch('/getPendingArtists');
+    return data.pending_artists
+}
+
+export async function setArtistStatus(targetUsername, status) // Calls the server to approve ('verified') or reject ('none') an artist request — admin only
+{
+    return apiFetch('/setArtistStatus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_username: targetUsername, status }),
+    });
+}

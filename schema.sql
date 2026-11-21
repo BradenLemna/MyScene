@@ -53,6 +53,10 @@ CREATE TABLE Users (
     -- migrations/003_auth_sessions.sql).
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
     artist_status ENUM('none','pending','verified') NOT NULL DEFAULT 'none',
+    -- Batch 3: when the account was created (the admin verification queue
+    -- shows this for pending users; live-database version:
+    -- migrations/004_users_created_at.sql).
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     PRIMARY KEY (username, user_password),
     -- username is unique in practice; the composite PK above does not

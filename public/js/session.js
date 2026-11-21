@@ -138,11 +138,30 @@
         });
     }
 
+    // ---------- admin link (Batch 3) ----------
+    // The footer "Admin" link (a.adminLink) is hidden by default in the
+    // HTML and only revealed when /me says is_admin:true — the dashboard
+    // is invisible to everyone else (no nav link, and the page itself
+    // redirects non-admins home).
+    function renderAdminLinks(me) {
+        document.querySelectorAll("a.adminLink").forEach(function (link) {
+            link.hidden = !(me && me.is_admin === true);
+        });
+    }
+
     function boot() {
         if (slots.length === 0) collectSlots();
-        if (slots.length === 0) return; // page without a login link
+        renderAdminLinks(cachedMe()); // instant from the sessionStorage cache
+        if (slots.length === 0) {
+            // Page without a login link: still refresh the admin link.
+            getMe().then(renderAdminLinks);
+            return;
+        }
         renderNav(cachedMe()); // instant from the sessionStorage cache
-        getMe().then(renderNav); // authoritative refresh
+        getMe().then(function (me) { // authoritative refresh
+            renderNav(me);
+            renderAdminLinks(me);
+        });
     }
 
     if (document.readyState === "loading") {

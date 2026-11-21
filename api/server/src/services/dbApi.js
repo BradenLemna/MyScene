@@ -40,4 +40,8 @@ export const dbApi = {
     me: (sessionId) => callDb('me.php', { session_id: sessionId }),
     requestArtistAccess: (sessionId) => callDb('request_artist_access.php', { session_id: sessionId }),
     trackEvent: (payload) => callDb('track_event.php', payload),
+    getAnalyticsSummary: (days) => callDb('get_analytics_summary.php', { days }),
+    getPendingArtists: () => callDb('get_pending_artists.php'),
+    setArtistStatus: (targetUsername, status) =>
+        callDb('set_artist_status.php', { target_username: targetUsername, status }),
 };

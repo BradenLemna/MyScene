@@ -1735,6 +1735,45 @@ html.js [data-reveal].revealed{
   .startMenu{ width:calc(100vw - 8px); }
 }
 
+/* ============ Admin dashboard (Batch 3) ============ */
+.dashSection{ margin:0; }
+.dashBody{ padding:16px; display:flex; flex-direction:column; gap:16px; }
+.dashToggle{ margin-left:auto; display:flex; gap:6px; }
+.dashToggle .btn{ min-width:52px; }
+.dashToggle .btn.pressed{
+  background:var(--w98-face-2);
+  box-shadow:inset 1px 1px 0 var(--w98-shadow), inset -1px -1px 0 var(--w98-white);
+}
+.dashChartPanel svg{ display:block; width:100%; height:auto; background:var(--w98-white); }
+.chartBar{ fill:var(--w98-navy); }
+.chartBar:hover{ fill:var(--w98-teal); }
+.chartAxis{ stroke:var(--w98-shadow-dark); }
+.chartLabel{ font-family:var(--font-mono); font-size:10px; fill:var(--w98-shadow-dark); }
+.dashLists{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.dashList{ margin:0; padding:0 0 0 22px; font-size:12px; }
+.dashList li{ padding:3px 0; border-bottom:1px dotted var(--w98-shadow); }
+.dashList li:last-child{ border-bottom:none; }
+.dashListEmpty{ color:var(--ink-faint); font-style:italic; }
+.dashTable{
+  width:100%; border-collapse:collapse; background:var(--w98-white);
+  box-shadow:inset 1px 1px 0 var(--w98-shadow), inset -1px -1px 0 var(--w98-white);
+  font-size:12px;
+}
+.dashTable th{
+  text-align:left; padding:6px 10px; font-size:11px;
+  background:var(--w98-face);
+  box-shadow:inset 1px 1px 0 var(--w98-white), inset -1px -1px 0 var(--w98-shadow);
+  border-bottom:1px solid var(--w98-shadow);
+}
+.dashTable td{ padding:6px 10px; border-bottom:1px dotted var(--w98-shadow); }
+.dashTable tr:last-child td{ border-bottom:none; }
+.dashTable .rowActions{ white-space:nowrap; text-align:right; }
+.dashTable .rowActions .btn{ margin-left:6px; min-width:70px; }
+@media (max-width:720px){
+  .dashLists{ grid-template-columns:1fr; }
+  .dashToggle{ margin-left:0; }
+}
+
 /* ============ Reduced motion ============ */
 @media (prefers-reduced-motion: reduce){
   html{ scroll-behavior:auto; }

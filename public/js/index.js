@@ -136,7 +136,7 @@ async function search() {
             artists = [exactArtist, ...artists];
         }
 
-        displayArtists(artists, input.trim());
+        displayArtists(artists, input.trim(), resultGenres);
     } catch (err) {
         console.error("Search failed:", err);
         const reason = err instanceof Error && err.message
@@ -384,7 +384,7 @@ renderFeaturedArtists();
 
 // ---------- search results ----------
 // Renders search results
-function displayArtists(artists, queryName = "") {
+function displayArtists(artists, queryName = "", genres = []) {
     document.getElementById("searchResults").style.display = "block";
     document.getElementById("featuredArtists").style.display = "none";
     document.getElementById("map").style.display = "none";
@@ -403,9 +403,10 @@ function displayArtists(artists, queryName = "") {
     }
 
     // EXP-002: a search "succeeds" when a results grid with ≥1 artist renders.
-    // The detail carries the count, so the METRICS.md success-rate query can
-    // also show how many results a successful search typically yields.
-    track("search_success", `results:${artists.length}`);
+    // The detail carries the genre(s) used plus the result count, so the
+    // METRICS.md queries can rank genres by successful searches and show how
+    // many results a successful search typically yields.
+    track("search_success", `genre:${genres.join(",")}|results:${artists.length}`);
 
     resultsDiv.innerHTML = artists.map((artist, i) => `
         <div class="artistBox" data-artist-index="${i}" tabindex="0" role="button" aria-label="View ${escapeHtml(artist.artist_name)}">

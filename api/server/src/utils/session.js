@@ -95,6 +95,41 @@ export function requireSession() {
 }
 
 /**
+ * Middleware for the admin dashboard routes (Batch 3): require a valid
+ * session whose account has is_admin. 401 when the session is missing or
+ * unknown/expired, 403 when logged in but not an admin. Attaches the
+ * account to req.sessionUser for the route handler.
+ */
+export function requireAdmin() {
+    return async (req, res, next) => {
+        const sessionId = sessionIdFromRequest(req);
+        if (sessionId === null) {
+            return next(new ApiError('Log in to continue.', 401));
+        }
+        let me;
+        try {
+            me = await dbApi.me(sessionId);
+        } catch (err) {
+            if (err.name === 'UpstreamError' && err.status === 404) {
+                // Unknown/expired session: answer "not logged in", not 404.
+                return next(new ApiError('Log in to continue.', 401));
+            }
+            return next(err);
+        }
+        if (me?.is_admin !== true) {
+            return next(new ApiError('Admin access required.', 403));
+        }
+        req.sessionUser = {
+            sessionId,
+            username: me.username,
+            isAdmin: true,
+            artistStatus: me.artist_status,
+        };
+        next();
+    };
+}
+
+/**
  * Middleware for POST /add_artist and POST /add_event: require a valid
  * session whose account is a verified artist (artist_status='verified').
  * 401 when the session is missing or unknown/expired, 403 when logged in
