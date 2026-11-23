@@ -166,6 +166,14 @@ export async function startMockDbApi() {
                     ],
                 });
                 break;
+            case 'get_verified_artists':
+                json(res, 200, {
+                    verified_artists: [
+                        { username: 'artistuser', created_at: '2026-11-01 09:00:00', artist_verified_at: '2026-11-10 10:30:00' },
+                        { username: 'adminuser', created_at: '2026-10-01 08:00:00', artist_verified_at: null },
+                    ],
+                });
+                break;
             case 'set_artist_status':
                 if (parsed.status !== 'verified' && parsed.status !== 'none') {
                     json(res, 400, { error: 'Field "status" must be one of: verified, none.' });
@@ -178,6 +186,15 @@ export async function startMockDbApi() {
                         artist_status: parsed.status,
                     });
                 }
+                break;
+            case 'get_recent_activity':
+                json(res, 200, {
+                    recent_activity: [
+                        { actor_username: 'adminuser', action: 'artist_approved', target: 'pendinguser', created_at: '2026-11-22 15:04:05' },
+                        { actor_username: 'artistuser', action: 'event_added', target: 'The Belladonnas — Test Hall', created_at: '2026-11-22 14:30:00' },
+                        { actor_username: 'artistuser', action: 'artist_added', target: 'The Belladonnas', created_at: '2026-11-22 14:00:00' },
+                    ],
+                });
                 break;
             default:
                 json(res, 404, { error: `No such endpoint: ${req.url}` });

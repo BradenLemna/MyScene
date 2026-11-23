@@ -135,6 +135,48 @@ Redesign: Windows 98 desktop metaphor.
                                 <p class="emptyState" id="pendingEmpty">No pending requests.</p>
                             </div>
                         </section>
+
+                        <!-- Artist profiles -->
+                        <section class="dashSection" aria-labelledby="verifiedHeading">
+                            <div class="sectionHead">
+                                <div>
+                                    <span class="kicker">Artist accounts</span>
+                                    <h2 id="verifiedHeading">Artist Profiles</h2>
+                                </div>
+                                <p id="verifiedCount"></p>
+                            </div>
+                            <div class="dashBody">
+                                <table class="dashTable" id="verifiedTable" hidden>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Username</th>
+                                            <th scope="col">Account created</th>
+                                            <th scope="col">Artist since</th>
+                                            <th scope="col">Role</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="verifiedBody"></tbody>
+                                </table>
+                                <p class="emptyState" id="verifiedEmpty">No verified artists yet.</p>
+                            </div>
+                        </section>
+
+                        <!-- Recent changes -->
+                        <section class="dashSection" aria-labelledby="activityHeading">
+                            <div class="sectionHead">
+                                <div>
+                                    <span class="kicker">Activity</span>
+                                    <h2 id="activityHeading">Recent Changes</h2>
+                                </div>
+                                <p id="activityCount"></p>
+                            </div>
+                            <div class="dashBody">
+                                <div class="formPanel" data-title="Latest 25">
+                                    <ul class="activityFeed" id="activityFeed"></ul>
+                                    <p class="emptyState" id="activityEmpty" hidden>No changes recorded yet.</p>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </main>
 

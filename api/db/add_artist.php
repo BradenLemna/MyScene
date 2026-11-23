@@ -13,6 +13,8 @@
  *   image_src       (optional, max 60 chars)
  *   longitude       (optional, float)
  *   latitude        (optional, float)
+ *   actor_username  (optional — the session-verified username the Node API
+ *                    forwards; recorded in the admin activity feed)
  *
  * Responses:
  *   200 {"success": true, "id": 12, "message": "..."}
@@ -76,9 +78,15 @@ try {
         ':latitude'        => $artist['latitude'],
     ]);
 
+    // Capture the new row id BEFORE log_activity: that INSERT updates the
+    // connection's last-insert-id, which lastInsertId() would then return.
+    $new_id = (int) $pdo->lastInsertId();
+
+    log_activity($pdo, activity_actor($data), 'artist_added', $artist['artist_name']);
+
     json_response([
         'success' => true,
-        'id'      => (int) $pdo->lastInsertId(),
+        'id'      => $new_id,
         'message' => 'Artist was successfully added to the database.',
     ]);
 } catch (PDOException $e) {

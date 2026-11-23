@@ -133,7 +133,9 @@ export function requireAdmin() {
  * Middleware for POST /add_artist and POST /add_event: require a valid
  * session whose account is a verified artist (artist_status='verified').
  * 401 when the session is missing or unknown/expired, 403 when logged in
- * but not a verified artist (fan or pending).
+ * but not a verified artist (fan or pending). Attaches the account to
+ * req.sessionUser for the route handler (the writes record it as the
+ * activity-feed actor).
  */
 export async function requireVerifiedArtist(req, res, next) {
     const sessionId = sessionIdFromRequest(req);
@@ -153,5 +155,11 @@ export async function requireVerifiedArtist(req, res, next) {
     if (me?.artist_status !== 'verified') {
         return next(new ApiError('Only verified artists can add artists and events.', 403));
     }
+    req.sessionUser = {
+        sessionId,
+        username: me.username,
+        isAdmin: me.is_admin === true,
+        artistStatus: me.artist_status,
+    };
     next();
 }

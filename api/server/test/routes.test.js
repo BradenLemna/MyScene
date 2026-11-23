@@ -87,6 +87,8 @@ test('POST /add_artist geocodes missing coordinates and proxies the insert', asy
     const call = dbApi.state.calls.find((c) => c.path === '/add_artist.php');
     assert.equal(call.body.latitude, 36.0626);
     assert.equal(call.body.longitude, -94.1574);
+    // The session-verified artist is forwarded as the activity-feed actor.
+    assert.equal(call.body.actor_username, 'artistuser');
 });
 
 test('POST /add_artist passes through a duplicate 409', async () => {
@@ -127,6 +129,9 @@ test('POST /add_event proxies the insert', async () => {
         });
     assert.equal(res.status, 200);
     assert.equal(res.body.success, true);
+    const calls = dbApi.state.calls.filter((c) => c.path === '/add_event.php');
+    // The session-verified artist is forwarded as the activity-feed actor.
+    assert.equal(calls.at(-1).body.actor_username, 'artistuser');
 });
 
 test('POST /add_event passes through a duplicate 409', async () => {

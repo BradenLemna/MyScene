@@ -140,6 +140,12 @@ export async function getPendingArtists() // Calls the server to get the pending
     return data.pending_artists
 }
 
+export async function getVerifiedArtists() // Calls the server to get the accounts holding the artist role ({verified_artists: [{username, created_at, artist_verified_at}]}) — admin only
+{
+    const data = await apiFetch('/getVerifiedArtists');
+    return data.verified_artists
+}
+
 export async function setArtistStatus(targetUsername, status) // Calls the server to approve ('verified') or reject ('none') an artist request — admin only
 {
     return apiFetch('/setArtistStatus', {
@@ -147,4 +153,10 @@ export async function setArtistStatus(targetUsername, status) // Calls the serve
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target_username: targetUsername, status }),
     });
+}
+
+export async function getRecentActivity() // Calls the server to get the recent-changes feed ({recent_activity: [{actor_username, action, target, created_at}]}) — admin only
+{
+    const data = await apiFetch('/getRecentActivity');
+    return data.recent_activity
 }

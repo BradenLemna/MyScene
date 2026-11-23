@@ -133,6 +133,9 @@ router.post('/add_artist', writeLimiter, requireVerifiedArtist, asyncHandler(asy
         image_src: strField(body, 'image_src'),
         longitude,
         latitude,
+        // The db-api records this in the admin activity feed ("who added
+        // this artist"). Session-verified — never client-supplied.
+        actor_username: req.sessionUser.username,
     });
 
     res.json(result);
@@ -169,6 +172,9 @@ router.post('/add_event', writeLimiter, requireVerifiedArtist, asyncHandler(asyn
         ticket_url: strField(body, 'ticket_url'),
         latitude: coords.latitude,
         longitude: coords.longitude,
+        // The db-api records this in the admin activity feed ("who added
+        // this event"). Session-verified — never client-supplied.
+        actor_username: req.sessionUser.username,
     });
 
     res.json(result);

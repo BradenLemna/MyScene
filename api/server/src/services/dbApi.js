@@ -42,6 +42,12 @@ export const dbApi = {
     trackEvent: (payload) => callDb('track_event.php', payload),
     getAnalyticsSummary: (days) => callDb('get_analytics_summary.php', { days }),
     getPendingArtists: () => callDb('get_pending_artists.php'),
-    setArtistStatus: (targetUsername, status) =>
-        callDb('set_artist_status.php', { target_username: targetUsername, status }),
+    getVerifiedArtists: () => callDb('get_verified_artists.php'),
+    setArtistStatus: (targetUsername, status, actorUsername) =>
+        callDb('set_artist_status.php', {
+            target_username: targetUsername,
+            status,
+            actor_username: actorUsername,
+        }),
+    getRecentActivity: () => callDb('get_recent_activity.php'),
 };

@@ -169,14 +169,17 @@ expect_status "get_artist (existing)" 200 POST /get_artist.php '{"artist_name":"
 expect_status "get_artist (missing)" 404 POST /get_artist.php '{"artist_name":"No Such Band XYZ"}'
 
 expect_status "add_artist (new)" 200 POST /add_artist.php \
-    '{"artist_name":"Smoke Test Band","location_city":"Fayetteville","location_region":"AR","music_genre":"Rock","latitude":36.0626,"longitude":-94.1574}'
+    '{"artist_name":"Smoke Test Band","location_city":"Fayetteville","location_region":"AR","music_genre":"Rock","latitude":36.0626,"longitude":-94.1574,"actor_username":"smoke_user"}'
 expect_contains "add_artist shape" '"success":true'
+# The response id must be the new Artists row, not the ActivityLog row the
+# same request inserts (lastInsertId is connection-wide).
+expect_contains "add_artist id is a new row" '"id":[1-9]'
 expect_status "add_artist (duplicate)" 409 POST /add_artist.php \
     '{"artist_name":"Smoke Test Band","location_city":"Fayetteville","location_region":"AR","music_genre":"Rock"}'
 expect_status "add_artist (missing field)" 400 POST /add_artist.php '{"artist_name":"Incomplete"}'
 
 expect_status "add_event (new)" 200 POST /add_event.php \
-    '{"artist_name":"Smoke Test Band","venue_name":"Smoke Venue","location_city":"Fayetteville","location_region":"AR","event_date":"2026-12-01","event_time":"20:00"}'
+    '{"artist_name":"Smoke Test Band","venue_name":"Smoke Venue","location_city":"Fayetteville","location_region":"AR","event_date":"2026-12-01","event_time":"20:00","actor_username":"smoke_user"}'
 expect_status "add_event (duplicate)" 409 POST /add_event.php \
     '{"artist_name":"Smoke Test Band","venue_name":"Smoke Venue","location_city":"Fayetteville","location_region":"AR","event_date":"2026-12-01"}'
 expect_status "add_event (unknown artist)" 404 POST /add_event.php \
@@ -246,17 +249,25 @@ expect_contains "get_pending_artists lists smoke_user" '"username":"smoke_user"'
 expect_contains "get_pending_artists has created_at" '"created_at"'
 
 expect_status "set_artist_status (approve)" 200 POST /set_artist_status.php \
-    '{"target_username":"smoke_user","status":"verified"}'
+    '{"target_username":"smoke_user","status":"verified","actor_username":"smoke_user"}'
 expect_contains "set_artist_status (approve) shape" '"success":true'
 expect_contains "set_artist_status (approve) status" '"artist_status":"verified"'
+
+# --- artist profiles: verified accounts + revoking the role ---
+expect_status "get_verified_artists (after approve)" 200 POST /get_verified_artists.php '{}'
+expect_contains "get_verified_artists shape" '"verified_artists"'
+expect_contains "get_verified_artists lists smoke_user" '"username":"smoke_user"'
+expect_contains "get_verified_artists has artist_verified_at" '"artist_verified_at":"2'
 expect_status "me (after approve) shows verified" 200 POST /me.php "{\"session_id\":\"$SESSION_ID\"}"
 expect_contains "me (after approve) artist_status" '"artist_status":"verified"'
 expect_status "get_pending_artists (empty after approve)" 200 POST /get_pending_artists.php '{}'
 expect_not_contains "get_pending_artists no longer lists smoke_user" '"username":"smoke_user"'
 
 expect_status "set_artist_status (reject)" 200 POST /set_artist_status.php \
-    '{"target_username":"smoke_user","status":"none"}'
+    '{"target_username":"smoke_user","status":"none","actor_username":"smoke_user"}'
 expect_contains "set_artist_status (reject) status" '"artist_status":"none"'
+expect_status "get_verified_artists (after revoke)" 200 POST /get_verified_artists.php '{}'
+expect_not_contains "get_verified_artists no longer lists smoke_user" '"username":"smoke_user"'
 expect_status "set_artist_status (bad status)" 400 POST /set_artist_status.php \
     '{"target_username":"smoke_user","status":"hacker"}'
 expect_status "set_artist_status (bad username)" 400 POST /set_artist_status.php \
@@ -265,6 +276,23 @@ expect_status "set_artist_status (unknown user)" 404 POST /set_artist_status.php
     '{"target_username":"no_such_user_xyz","status":"verified"}'
 expect_status "set_artist_status (missing field)" 400 POST /set_artist_status.php \
     '{"target_username":"smoke_user"}'
+
+# --- recent changes: the activity feed (admin dashboard) ---
+# By this point the feed holds: artist_added + event_added (the adds above,
+# attributed to smoke_user via actor_username), account_created (smoke_fan's
+# registration), artist_requested, and artist_approved + artist_rejected
+# (the status changes above).
+expect_status "get_recent_activity (shape)" 200 POST /get_recent_activity.php '{}'
+expect_contains "get_recent_activity shape" '"recent_activity"'
+expect_contains "get_recent_activity artist_added" '"actor_username":"smoke_user","action":"artist_added"'
+expect_contains "get_recent_activity artist_added target" '"target":"Smoke Test Band"'
+expect_contains "get_recent_activity event_added" '"actor_username":"smoke_user","action":"event_added"'
+expect_contains "get_recent_activity event_added target" '"target":"Smoke Test Band — Smoke Venue"'
+expect_contains "get_recent_activity account_created" '"actor_username":"smoke_fan","action":"account_created"'
+expect_contains "get_recent_activity artist_requested" '"actor_username":"smoke_user","action":"artist_requested"'
+expect_contains "get_recent_activity artist_approved" '"actor_username":"smoke_user","action":"artist_approved"'
+expect_contains "get_recent_activity artist_rejected" '"actor_username":"smoke_user","action":"artist_rejected"'
+expect_contains "get_recent_activity has created_at" '"created_at"'
 
 # Seed a few analytics events through the real endpoint, then query the
 # summary (all inside the 30-day window).
