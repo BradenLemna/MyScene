@@ -100,6 +100,109 @@ document.getElementById("viewSimilar").addEventListener("click", function() {
     window.location.href = `../index.html?genre=${encodeURIComponent(genre)}`;
 });
 
+// ---------- concert tabs ----------
+// Upcoming / Previous split the two old side-by-side boxes; "Add events"
+// appears only for verified artists (Batch 2 gating — the API enforces the
+// same rule on POST /add_event, so the tab is a UX hint, not the gate).
+const tabs = {
+    upcoming: { tab: document.getElementById("tabUpcoming"), panel: document.getElementById("panelUpcoming") },
+    previous: { tab: document.getElementById("tabPrevious"), panel: document.getElementById("panelPrevious") },
+    add: { tab: document.getElementById("tabAddEvent"), panel: document.getElementById("panelAddEvent") },
+};
+
+function selectTab(name) {
+    for (const [key, entry] of Object.entries(tabs)) {
+        const active = key === name;
+        entry.tab.classList.toggle("active", active);
+        entry.tab.setAttribute("aria-selected", String(active));
+        entry.panel.hidden = !active;
+    }
+}
+
+for (const [key, entry] of Object.entries(tabs)) {
+    entry.tab.addEventListener("click", () => selectTab(key));
+}
+
+// Arrow-key navigation across the visible tabs (tablist a11y).
+document.getElementById("concertTabs").addEventListener("keydown", (e) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+    const visible = Object.keys(tabs).filter((key) => !tabs[key].tab.hidden);
+    const current = visible.find((key) => tabs[key].tab.classList.contains("active"));
+    let idx = visible.indexOf(current);
+    if (e.key === "ArrowRight") idx = (idx + 1) % visible.length;
+    else if (e.key === "ArrowLeft") idx = (idx - 1 + visible.length) % visible.length;
+    else if (e.key === "Home") idx = 0;
+    else if (e.key === "End") idx = visible.length - 1;
+    const next = visible[idx];
+    selectTab(next);
+    tabs[next].tab.focus();
+    e.preventDefault();
+});
+
+// Reveal the "Add events" tab once /me confirms a verified artist.
+window.mysceneSession.getMe().then((me) => {
+    if (me && me.artist_status === "verified") {
+        tabs.add.tab.hidden = false;
+    }
+});
+
+// ---------- add events (verified artists) ----------
+// The loaded artist row the form submits for (set in loadPage).
+let currentArtist = null;
+
+const addEventForm = document.getElementById("addEventForm");
+addEventForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!currentArtist) return;
+
+    const venue = document.getElementById("eventVenue").value.trim();
+    const city = document.getElementById("eventCity").value.trim();
+    const state = document.getElementById("eventState").value.trim();
+    const date = document.getElementById("eventDate").value;
+    const time = document.getElementById("eventTime").value;
+    const ticketUrl = document.getElementById("eventTicketUrl").value.trim();
+
+    // Native validation (required attributes) usually catches this first;
+    // the toast is the fallback for browsers that skip it.
+    if (!venue || !city || !state || !date) {
+        toast("Venue, city, state, and date are required.", "error");
+        return;
+    }
+
+    const button = document.getElementById("addEventButton");
+    button.disabled = true;
+    button.textContent = "Adding...";
+    try {
+        await apiCalls.addEvent({
+            artist_name: currentArtist.artist_name,
+            venue_name: venue,
+            location_city: city,
+            location_region: state,
+            event_date: date,
+            event_time: time || undefined,
+            ticket_url: ticketUrl || undefined,
+        });
+        // EXP-002: a show was added to the scene.
+        track("event_add", `artist:${currentArtist.artist_name}`);
+        toast("Event added — it's now listed under Upcoming.", "success");
+        addEventForm.reset();
+        // reset() wipes the pre-filled location too — restore it.
+        document.getElementById("eventCity").value = currentArtist.location_city ?? "";
+        document.getElementById("eventState").value = currentArtist.location_region ?? "";
+        const events = await apiCalls.getArtistEvents(currentArtist.artist_name);
+        renderConcerts(Array.isArray(events) ? events : []);
+        selectTab("upcoming");
+    } catch (err) {
+        // apiFetch carries the server's message (e.g. the 409 duplicate
+        // notice) — surface it instead of a generic failure.
+        console.error("Couldn't add event:", err);
+        toast("Couldn't add the event: " + err.message, "error");
+    } finally {
+        button.disabled = false;
+        button.textContent = "Add Event";
+    }
+});
+
 function showNotFound() {
     artistHeader.style.display = "none";
     artistStats.style.display = "none";
@@ -220,6 +323,12 @@ async function loadPage() {
         showNotFound();
         return;
     }
+
+    // The add-event form submits for this row; pre-fill its location with
+    // the artist's home city/state (the show may be elsewhere — editable).
+    currentArtist = artist;
+    document.getElementById("eventCity").value = artist.location_city ?? "";
+    document.getElementById("eventState").value = artist.location_region ?? "";
 
     // EXP-002: a profile_view is a successfully loaded artist profile.
     track("profile_view", `artist:${artist.artist_name}`);

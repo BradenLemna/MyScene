@@ -1367,13 +1367,49 @@ section{ padding:0; }
 #artistNotFound a{ color:var(--w98-navy); font-weight:700; }
 
 #artistStats{
-  display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
-  gap:14px;
+  display:flex;
+  flex-direction:column;
   max-width:none;
   margin:0;
   padding:0 16px 16px;
 }
+/* Concert tabs (Upcoming / Previous, + Add events for verified artists).
+   The active tab reads as a pressed Win98 button; panels switch below. */
+#concertTabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  padding:4px;
+  margin-bottom:12px;
+  background:var(--w98-face);
+  border:1px solid var(--w98-shadow);
+  box-shadow:
+    inset 1px 1px 0 var(--w98-white),
+    1px 1px 0 var(--w98-white);
+}
+.concertTab{
+  font-family:var(--font-ui);
+  font-size:12px;
+  font-weight:700;
+  color:#000;
+  min-height:26px;
+  padding:4px 14px;
+  background:var(--w98-face);
+  border:1px solid var(--w98-shadow);
+  box-shadow:
+    inset 1px 1px 0 var(--w98-white),
+    inset -1px -1px 0 var(--w98-shadow-dark);
+  cursor:pointer;
+  user-select:none;
+}
+.concertTab:hover{ color:#000; }
+.concertTab.active{
+  background:var(--w98-white);
+  box-shadow:
+    inset 1px 1px 0 var(--w98-shadow),
+    inset -1px -1px 0 var(--w98-white);
+}
+#panelAddEvent{ max-width:560px; }
 .statBox{
   position:relative;
   background:var(--w98-face);

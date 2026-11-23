@@ -94,14 +94,60 @@ Redesign: Windows 98 desktop metaphor.
           </div>
 
           <div id="artistStats" data-reveal>
-            <div class="statBox">
+            <div id="concertTabs" role="tablist" aria-label="Concerts">
+              <button class="concertTab active" id="tabUpcoming" type="button" role="tab" aria-selected="true" aria-controls="panelUpcoming">Upcoming</button>
+              <button class="concertTab" id="tabPrevious" type="button" role="tab" aria-selected="false" aria-controls="panelPrevious">Previous</button>
+              <!-- Hidden by default; viewArtist.js reveals it for verified artists. -->
+              <button class="concertTab" id="tabAddEvent" type="button" role="tab" aria-selected="false" aria-controls="panelAddEvent" hidden>Add events</button>
+            </div>
+
+            <div id="panelUpcoming" class="statBox" role="tabpanel" aria-labelledby="tabUpcoming">
+              <h2>Upcoming Concerts</h2>
+              <ul class="concertList" id="upcomingConcerts"></ul>
+            </div>
+
+            <div id="panelPrevious" class="statBox" role="tabpanel" aria-labelledby="tabPrevious" hidden>
               <h2>Previous Concerts</h2>
               <ul class="concertList" id="previousConcerts"></ul>
             </div>
 
-            <div class="statBox">
-              <h2>Upcoming Concerts</h2>
-              <ul class="concertList" id="upcomingConcerts"></ul>
+            <!-- Verified artists only: submit a show for this artist
+                 (POST /add_event, enforced again by the API). -->
+            <div id="panelAddEvent" class="formPanel" data-title="Add Event" role="tabpanel" aria-labelledby="tabAddEvent" hidden>
+              <form id="addEventForm">
+                <div class="form-group">
+                  <label for="eventVenue">Venue</label>
+                  <input type="text" id="eventVenue" placeholder="e.g. The Hi-Dive" maxlength="80" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="eventCity">City</label>
+                  <input type="text" id="eventCity" placeholder="e.g. Fayetteville" maxlength="40" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="eventState">State</label>
+                  <input type="text" id="eventState" placeholder="e.g. Arkansas" maxlength="40" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="eventDate">Date</label>
+                  <input type="date" id="eventDate" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="eventTime">Time (optional)</label>
+                  <input type="time" id="eventTime">
+                </div>
+
+                <div class="form-group">
+                  <label for="eventTicketUrl">Ticket link (optional)</label>
+                  <input type="url" id="eventTicketUrl" placeholder="https://tickets.example.com/show" maxlength="255">
+                </div>
+
+                <button id="addEventButton" class="btn pink" type="submit">Add Event</button>
+                <p class="formHint">Venue, city, state, and date are required. The artist&rsquo;s home location is pre-filled &mdash; change it if the show is elsewhere.</p>
+              </form>
             </div>
           </div>
         </main>

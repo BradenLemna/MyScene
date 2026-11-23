@@ -30,7 +30,7 @@ database.
 - **Pages:** `index`, `viewArtist`, `addArtist`, `login`, `register`,
   `analytics`
 - **Events:** `pageview`, `search_run`, `search_success`, `profile_view`,
-  `insta_click`, `offline_notice_shown`, `fav_toggle`
+  `insta_click`, `offline_notice_shown`, `fav_toggle`, `event_add`
 
 ## `detail` formats
 
@@ -39,6 +39,7 @@ database.
 | `profile_view`     | `artist:{name}`                        | `artist:Burn Absolute`         |
 | `insta_click`      | `artist:{name}`                        | `artist:Burn Absolute`         |
 | `fav_toggle`       | `artist:{name}`                        | `artist:Burn Absolute`         |
+| `event_add`        | `artist:{name}`                        | `artist:Burn Absolute`         |
 | `search_success`   | `genre:{genres}\|results:{n}`          | `genre:Rock\|results:5`        |
 | `search_run`       | *(none)*                               |                                |
 | `pageview`         | *(none)*                               |                                |
