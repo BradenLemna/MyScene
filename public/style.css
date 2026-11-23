@@ -903,6 +903,68 @@ section{ padding:0; }
   color:var(--ink-faint);
 }
 
+/* ============ Shows page (Batch 4) ============ */
+#showsResults{ margin:14px 0 0; }
+.showDay{ margin:0 0 18px; }
+.showDayHead{
+  display:inline-block;
+  margin:0 0 8px;
+  padding:3px 10px;
+  background:var(--w98-navy);
+  color:var(--w98-white);
+  font-family:var(--font-ui);
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.02em;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.35),
+    inset -1px -1px 0 rgba(0,0,0,.4);
+}
+.showList{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.showRow{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:2px 10px;
+  padding:8px 12px;
+  background:var(--w98-white);
+  border:1px solid var(--w98-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--w98-light),
+    inset -1px -1px 0 var(--w98-shadow);
+  font-size:12px;
+  color:#000;
+}
+.showBand{ font-weight:700; }
+.showVenue{ color:var(--w98-shadow-dark); }
+.showTime{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--ink-faint);
+}
+.showTickets{
+  margin-left:auto;
+  padding:2px 10px;
+  background:var(--w98-face);
+  border:1px solid var(--w98-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--w98-white),
+    inset -1px -1px 0 var(--w98-shadow-dark);
+  font-size:11px;
+  font-weight:700;
+  color:#000;
+  text-decoration:none;
+}
+.showTickets:hover{ background:var(--w98-yellow); }
+.showEmpty .btn{ margin-top:12px; }
+
 /* Leaflet restyle to Win98 */
 .leaflet-container{ background:#e6e2d6; font-family:var(--font-ui); font-size:12px; }
 .leaflet-tile{ filter:sepia(.22) saturate(.92) contrast(.96); }
@@ -1805,6 +1867,20 @@ html.js [data-reveal].revealed{
 .dashTable tr:last-child td{ border-bottom:none; }
 .dashTable .rowActions{ white-space:nowrap; text-align:right; }
 .dashTable .rowActions .btn{ margin-left:6px; min-width:70px; }
+.activityFeed{ margin:0; padding:0; list-style:none; font-size:12px; }
+.activityItem{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 10px;
+  padding:5px 0; border-bottom:1px dotted var(--w98-shadow);
+}
+.activityItem:last-child{ border-bottom:none; }
+.activityText{ min-width:0; }
+.activityMeta{
+  margin-left:auto; white-space:nowrap;
+  font-family:var(--font-mono); font-size:10px; color:var(--ink-faint);
+}
+@media (max-width:720px){
+  .activityMeta{ margin-left:0; flex-basis:100%; }
+}
 @media (max-width:720px){
   .dashLists{ grid-template-columns:1fr; }
   .dashToggle{ margin-left:0; }

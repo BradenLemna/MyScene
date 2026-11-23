@@ -119,6 +119,19 @@ export async function getNearbyArtists(latitude, longitude, radius) // Calls the
     return data.artists
 }
 
+export async function getNearbyEvents(latitude, longitude, radius, days) // Calls the server to get upcoming events within `radius` miles of a point (next `days` days)
+{
+    const params = new URLSearchParams({ lat: latitude, lon: longitude, radius, days });
+    const data = await apiFetch('/getNearbyEvents?' + params);
+    return data.events
+}
+
+export async function getArtistsWithEvents(days) // Calls the server to get the artists with at least one event in the next `days` days
+{
+    const data = await apiFetch('/getArtistsWithEvents?days=' + encodeURIComponent(days));
+    return data.artists
+}
+
 export async function addEvent(event) // Calls the server to add an event ({artist_name, venue_name, location_city, location_region, event_date, event_time?, ticket_url?})
 {
     return apiFetch('/add_event', {
@@ -140,6 +153,12 @@ export async function getPendingArtists() // Calls the server to get the pending
     return data.pending_artists
 }
 
+export async function getVerifiedArtists() // Calls the server to get the accounts holding the artist role ({verified_artists: [{username, created_at, artist_verified_at}]}) — admin only
+{
+    const data = await apiFetch('/getVerifiedArtists');
+    return data.verified_artists
+}
+
 export async function setArtistStatus(targetUsername, status) // Calls the server to approve ('verified') or reject ('none') an artist request — admin only
 {
     return apiFetch('/setArtistStatus', {
@@ -147,4 +166,10 @@ export async function setArtistStatus(targetUsername, status) // Calls the serve
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target_username: targetUsername, status }),
     });
+}
+
+export async function getRecentActivity() // Calls the server to get the recent-changes feed ({recent_activity: [{actor_username, action, target, created_at}]}) — admin only
+{
+    const data = await apiFetch('/getRecentActivity');
+    return data.recent_activity
 }

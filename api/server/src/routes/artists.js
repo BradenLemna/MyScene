@@ -9,6 +9,8 @@
 //   GET  /getGenreList               -> { genres: [...] }
 //   GET  /getArtistEvents?artist=... -> { events: [...] }
 //   GET  /getNearbyArtists?lat=..&lon=..&radius=.. -> { artists: [...] }
+//   GET  /getNearbyEvents?lat=..&lon=..&radius=..&days=.. -> { events: [...] }
+//   GET  /getArtistsWithEvents?days=.. -> { artists: [...] }
 //   POST /add_artist                 -> { success, id, message }
 //   POST /add_event                  -> { success, id, message }
 //
@@ -87,6 +89,21 @@ router.get('/getNearbyArtists', asyncHandler(async (req, res) => {
     res.json({ artists: Array.isArray(data?.artists) ? data.artists : [] });
 }));
 
+router.get('/getNearbyEvents', asyncHandler(async (req, res) => {
+    const latitude = requireNumberQuery(req, 'lat');
+    const longitude = requireNumberQuery(req, 'lon');
+    const radius = optionalNumberQuery(req, 'radius', 10);
+    const days = optionalNumberQuery(req, 'days', 30);
+    const data = await dbApi.getNearbyEvents(latitude, longitude, radius, days);
+    res.json({ events: Array.isArray(data?.events) ? data.events : [] });
+}));
+
+router.get('/getArtistsWithEvents', asyncHandler(async (req, res) => {
+    const days = optionalNumberQuery(req, 'days', 30);
+    const data = await dbApi.getArtistsWithEvents(days);
+    res.json({ artists: Array.isArray(data?.artists) ? data.artists : [] });
+}));
+
 /**
  * Best-effort geocode of "city, region" so new rows get map coordinates.
  * Never blocks the insert: a missing LocationIQ key, no match or an upstream
@@ -133,6 +150,9 @@ router.post('/add_artist', writeLimiter, requireVerifiedArtist, asyncHandler(asy
         image_src: strField(body, 'image_src'),
         longitude,
         latitude,
+        // The db-api records this in the admin activity feed ("who added
+        // this artist"). Session-verified — never client-supplied.
+        actor_username: req.sessionUser.username,
     });
 
     res.json(result);
@@ -169,6 +189,9 @@ router.post('/add_event', writeLimiter, requireVerifiedArtist, asyncHandler(asyn
         ticket_url: strField(body, 'ticket_url'),
         latitude: coords.latitude,
         longitude: coords.longitude,
+        // The db-api records this in the admin activity feed ("who added
+        // this event"). Session-verified — never client-supplied.
+        actor_username: req.sessionUser.username,
     });
 
     res.json(result);

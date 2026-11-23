@@ -37,6 +37,8 @@ try {
     $stmt = $pdo->prepare("UPDATE Users SET artist_status = 'pending' WHERE username = ?");
     $stmt->execute([$row['username']]);
 
+    log_activity($pdo, $row['username'], 'artist_requested', $row['username']);
+
     json_response(['success' => true, 'artist_status' => 'pending']);
 } catch (PDOException $e) {
     fail_with_log($e, 'request_artist_access');

@@ -28,7 +28,7 @@ Anything outside these lists is rejected with a 400 before it touches the
 database.
 
 - **Pages:** `index`, `viewArtist`, `addArtist`, `login`, `register`,
-  `analytics`
+  `analytics`, `shows`
 - **Events:** `pageview`, `search_run`, `search_success`, `profile_view`,
   `insta_click`, `offline_notice_shown`, `fav_toggle`, `event_add`
 

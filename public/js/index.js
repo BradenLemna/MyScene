@@ -344,6 +344,63 @@ document.addEventListener("click", e => {
 });
 
 // ---------- featured artists ----------
+// The full featured list from the API (unfiltered). The Dates filter
+// (Batch 4) re-renders this through renderFeaturedGrid() without re-fetching.
+let featuredArtists = [];
+let featuredLoaded = false;
+// Dates-filter state (Batch 4): null = anytime, else 7 or 30. Declared here
+// (before the first async render can read it); the filter UI wiring lives
+// in the "dates filter" section below.
+let datesWindow = null;
+const artistsWithEventsCache = new Map(); // days -> Promise<Set<artist_name>>
+
+// Renders featuredArtists through the active Dates filter.
+async function renderFeaturedGrid() {
+    const featuredDiv = document.getElementById("featuredArtistsGrid");
+    if (!featuredDiv) return;
+
+    let artists = featuredArtists;
+    let filterFailed = false;
+    if (datesWindow !== null) {
+        try {
+            const names = await loadArtistsWithEvents(datesWindow);
+            artists = artists.filter(artist => names.has(artist.artist_name));
+        } catch (err) {
+            // Honest fallback: the filter couldn't load, so show everyone.
+            console.error("Dates filter failed, showing all featured artists:", err);
+            filterFailed = true;
+        }
+    }
+
+    if (artists.length === 0) {
+        featuredDiv.innerHTML = datesWindow === null
+            ? `<div class="emptyState">No featured artists yet &mdash; check back soon, or add the first one.</div>`
+            : `<div class="emptyState">No featured artists have shows ${datesWindow === 7 ? "this week" : "this month"} yet &mdash; clear the Dates filter to see everyone, or browse the <a href="pages/shows.html">shows page</a>.</div>`;
+        return;
+    }
+
+    featuredDiv.innerHTML = artists.map((artist, i) => `
+        <div role="button" class="artistBox" data-artist-index="${i}" tabindex="0" aria-label="View ${escapeHtml(artist.artist_name)}">
+            <div class="artistCard">
+                <div class="artistImgWrap">
+                    <span class="newBadge">Featured</span>
+                    ${artistImgTag(artist, "artistImg")}
+                </div>
+                <div class="artistCardBody">
+                    <h3>${escapeHtml(artist.artist_name)}</h3>
+                    <div class="artistMeta"><span class="genreTag">${escapeHtml(artist.music_genre)}</span></div>
+                </div>
+            </div>
+        </div>
+    `).join("");
+
+    wireArtistBoxes(featuredDiv, artists);
+    if (filterFailed) {
+        featuredDiv.insertAdjacentHTML("afterbegin",
+            `<div class="emptyState">Dates filter unavailable right now &mdash; showing all featured artists.</div>`);
+    }
+}
+
 // Renders featured artists
 async function renderFeaturedArtists() {
     const featuredDiv = document.getElementById("featuredArtistsGrid");
@@ -352,42 +409,98 @@ async function renderFeaturedArtists() {
 
     try {
         const artists = await apiCalls.getFeaturedArtists();
-        if (!artists || artists.length === 0) {
-            featuredDiv.innerHTML = `<div class="emptyState">No featured artists yet — check back soon, or add the first one.</div>`;
-            return;
-        }
-
-        featuredDiv.innerHTML = artists.map((artist, i) => `
-            <div role="button" class="artistBox" data-artist-index="${i}" tabindex="0" aria-label="View ${escapeHtml(artist.artist_name)}">
-                <div class="artistCard">
-                    <div class="artistImgWrap">
-                        <span class="newBadge">Featured</span>
-                        ${artistImgTag(artist, "artistImg")}
-                    </div>
-                    <div class="artistCardBody">
-                        <h3>${escapeHtml(artist.artist_name)}</h3>
-                        <div class="artistMeta"><span class="genreTag">${escapeHtml(artist.music_genre)}</span></div>
-                    </div>
-                </div>
-            </div>
-        `).join("");
-
-        wireArtistBoxes(featuredDiv, artists);
+        featuredArtists = Array.isArray(artists) ? artists : [];
     } catch (err) {
         console.error("Failed to fetch featured artists:", err);
+        featuredArtists = [];
+        featuredLoaded = true;
         featuredDiv.innerHTML = `<div class="emptyState">${apiOnline
             ? "Couldn't load featured artists right now."
             : "Featured artists can't load while scene data is offline — check back soon."}</div>`;
+        return;
     }
+    featuredLoaded = true;
+    await renderFeaturedGrid();
 }
 renderFeaturedArtists();
 
+// ---------- dates filter (Batch 4) ----------
+// This week (7) / This month (30) narrow the artist grids to artists with at
+// least one show in the window (via /getArtistsWithEvents); "Anytime" (the
+// default) shows everything. The three options are radio-like: picking one
+// clears the others, and unchecking the last one returns to "Anytime".
+function selectedDatesWindow() {
+    const checked = document.querySelector("#datesfilter input:checked");
+    if (!checked || checked.value === "anytime") return null;
+    return Number(checked.value);
+}
+
+function loadArtistsWithEvents(days) {
+    let cached = artistsWithEventsCache.get(days);
+    if (!cached) {
+        cached = apiCalls.getArtistsWithEvents(days)
+            .then(artists => new Set((artists ?? []).map(a => a.artist_name)))
+            .catch(err => {
+                // Drop the failed promise so the next interaction retries.
+                artistsWithEventsCache.delete(days);
+                throw err;
+            });
+        artistsWithEventsCache.set(days, cached);
+    }
+    return cached;
+}
+
+document.querySelectorAll("#datesfilter input").forEach(box => {
+    box.addEventListener("change", () => {
+        const boxes = [...document.querySelectorAll("#datesfilter input")];
+        if (box.checked) {
+            boxes.forEach(other => { if (other !== box) other.checked = false; });
+        }
+        if (!boxes.some(other => other.checked)) {
+            document.querySelector('#datesfilter input[value="anytime"]').checked = true;
+        }
+        datesWindow = selectedDatesWindow();
+        refreshGridForDates();
+    });
+});
+
+// Re-render whichever artist grid is currently visible through the new window.
+async function refreshGridForDates() {
+    const resultsVisible = document.getElementById("searchResults").style.display === "block";
+    if (resultsVisible) {
+        await displayArtists(lastSearchArtists, lastSearchQuery, lastSearchGenres);
+    } else if (featuredLoaded) {
+        await renderFeaturedGrid();
+    }
+    // The featured grid is still loading: its initial render applies the
+    // current datesWindow when it finishes (renderFeaturedArtists -> renderFeaturedGrid).
+}
+
 // ---------- search results ----------
-// Renders search results
-function displayArtists(artists, queryName = "", genres = []) {
+// Renders search results. The last run is remembered so the Dates filter can
+// re-filter the visible results grid without re-running the search.
+let lastSearchArtists = [];
+let lastSearchQuery = "";
+let lastSearchGenres = [];
+
+async function displayArtists(artists, queryName = "", genres = []) {
     document.getElementById("searchResults").style.display = "block";
     document.getElementById("featuredArtists").style.display = "none";
     document.getElementById("map").style.display = "none";
+
+    lastSearchArtists = artists ?? [];
+    lastSearchQuery = queryName;
+    lastSearchGenres = genres;
+
+    // Batch 4: the Dates filter also narrows search results.
+    if (datesWindow !== null) {
+        try {
+            const names = await loadArtistsWithEvents(datesWindow);
+            artists = artists.filter(artist => names.has(artist.artist_name));
+        } catch (err) {
+            console.error("Dates filter failed, showing unfiltered results:", err);
+        }
+    }
 
     const resultsDiv = document.getElementById("results");
     const countEl = document.getElementById("resultsCount");
@@ -398,7 +511,9 @@ function displayArtists(artists, queryName = "", genres = []) {
     }
 
     if (!artists || artists.length === 0) {
-        resultsDiv.innerHTML = `<div class="emptyState">No artists match that search yet — try a different name or clear a filter.</div>`;
+        resultsDiv.innerHTML = datesWindow === null
+            ? `<div class="emptyState">No artists match that search yet — try a different name or clear a filter.</div>`
+            : `<div class="emptyState">No matches have shows ${datesWindow === 7 ? "this week" : "this month"} yet &mdash; clear the Dates filter to see all results.</div>`;
         return;
     }
 

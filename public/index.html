@@ -57,6 +57,7 @@ Redesign: Windows 98 desktop metaphor (teal desktop, window chrome, taskbar).
           <div class="menuDrop" role="menu">
             <a class="menuDropItem" href="index.html">Home</a>
             <a class="menuDropItem" href="pages/addArtist.html">Add Artist&hellip;</a>
+            <a class="menuDropItem" href="pages/shows.html">Shows Near You&hellip;</a>
             <a class="menuDropItem" href="pages/login.html">Log In&hellip;</a>
             <div class="menuDivider"></div>
             <a class="menuDropItem" href="pages/register.html">Create Account&hellip;</a>
@@ -81,6 +82,7 @@ Redesign: Windows 98 desktop metaphor (teal desktop, window chrome, taskbar).
       <div class="toolbar">
         <span class="toolbarGrip" aria-hidden="true"></span>
         <a class="btn cyan" href="pages/addArtist.html">+ Add Artist</a>
+        <a class="btn cyan" href="pages/shows.html">Shows</a>
         <span class="spacer"></span>
         <a class="loginLink" href="pages/login.html">Log In</a>
       </div>
@@ -126,26 +128,17 @@ Redesign: Windows 98 desktop metaphor (teal desktop, window chrome, taskbar).
                   <!-- Populated at runtime from the /getGenreList endpoint (see index.js) -->
                   <div class="filterSubmenu" id="genrefilter"></div>
                 </div>
-                <div class="filterCategory soon">
-                  <button type="button" class="filterToggle" aria-expanded="false" aria-controls="datesfilter" aria-disabled="true">
-                    Dates <span class="soonTag">coming soon</span>
+                <div class="filterCategory">
+                  <button type="button" class="filterToggle" aria-expanded="false" aria-controls="datesfilter">
+                    Dates
                     <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
                   </button>
-                  <div class="filterSubmenu" id="datesfilter" aria-hidden="true">
-                    <label><input type="checkbox" value="thisWeek" disabled> This week</label>
-                    <label><input type="checkbox" value="thisMonth" disabled> This month</label>
-                    <label><input type="checkbox" value="anytime" disabled> Anytime</label>
-                  </div>
-                </div>
-                <div class="filterCategory soon">
-                  <button type="button" class="filterToggle" aria-expanded="false" aria-controls="sizefilter" aria-disabled="true">
-                    Venue size <span class="soonTag">coming soon</span>
-                    <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
-                  </button>
-                  <div class="filterSubmenu" id="sizefilter" aria-hidden="true">
-                    <label><input type="checkbox" value="small" disabled> Small</label>
-                    <label><input type="checkbox" value="medium" disabled> Medium</label>
-                    <label><input type="checkbox" value="large" disabled> Large</label>
+                  <!-- Batch 4: working Dates filter (radio-like; "Anytime" is the
+                       default / no filter). See the dates-filter section in index.js. -->
+                  <div class="filterSubmenu" id="datesfilter">
+                    <label><input type="checkbox" value="7"> This week</label>
+                    <label><input type="checkbox" value="30"> This month</label>
+                    <label><input type="checkbox" value="anytime" checked> Anytime</label>
                   </div>
                 </div>
               </div>

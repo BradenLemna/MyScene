@@ -30,6 +30,9 @@ export const dbApi = {
     searchGenre: (genre) => callDb('search_genre.php', { music_genre: genre }),
     getGenreList: () => callDb('get_genre_list.php'),
     getArtistEvents: (artistName) => callDb('get_artist_events.php', { artist_name: artistName }),
+    getNearbyEvents: (latitude, longitude, radius, days) =>
+        callDb('get_nearby_events.php', { latitude, longitude, radius, days }),
+    getArtistsWithEvents: (days) => callDb('get_artists_with_events.php', { days }),
     addEvent: (payload) => callDb('add_event.php', payload),
     getNearbyArtists: (latitude, longitude, radius) =>
         callDb('get_nearby_artists.php', { latitude, longitude, radius }),
@@ -42,6 +45,12 @@ export const dbApi = {
     trackEvent: (payload) => callDb('track_event.php', payload),
     getAnalyticsSummary: (days) => callDb('get_analytics_summary.php', { days }),
     getPendingArtists: () => callDb('get_pending_artists.php'),
-    setArtistStatus: (targetUsername, status) =>
-        callDb('set_artist_status.php', { target_username: targetUsername, status }),
+    getVerifiedArtists: () => callDb('get_verified_artists.php'),
+    setArtistStatus: (targetUsername, status, actorUsername) =>
+        callDb('set_artist_status.php', {
+            target_username: targetUsername,
+            status,
+            actor_username: actorUsername,
+        }),
+    getRecentActivity: () => callDb('get_recent_activity.php'),
 };
