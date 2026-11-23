@@ -14,6 +14,8 @@
  *   ticket_url      (optional, http(s) URL, max 255 chars)
  *   longitude       (optional, float)
  *   latitude        (optional, float)
+ *   actor_username  (optional — the session-verified username the Node API
+ *                    forwards; recorded in the admin activity feed)
  *
  * Responses:
  *   200 {"success": true, "id": 7, "message": "..."}
@@ -82,9 +84,16 @@ try {
         ':latitude'        => $event['latitude'],
     ]);
 
+    // Capture the new row id BEFORE log_activity: that INSERT updates the
+    // connection's last-insert-id, which lastInsertId() would then return.
+    $new_id = (int) $pdo->lastInsertId();
+
+    log_activity($pdo, activity_actor($data), 'event_added',
+        $event['artist_name'] . ' — ' . $event['venue_name']);
+
     json_response([
         'success' => true,
-        'id'      => (int) $pdo->lastInsertId(),
+        'id'      => $new_id,
         'message' => 'Event was successfully added.',
     ]);
 } catch (PDOException $e) {

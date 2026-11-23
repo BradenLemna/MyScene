@@ -7,7 +7,7 @@
  *
  * Body (JSON):
  *   page    (required — one of: index, viewArtist, addArtist, login,
- *                        register, analytics)
+ *                        register, analytics, shows)
  *   event   (required — one of: pageview, search_run, search_success,
  *                        profile_view, insta_click, offline_notice_shown,
  *                        fav_toggle, event_add)
@@ -26,7 +26,7 @@ require __DIR__ . '/bootstrap.php';
 
 $data = read_json_body();
 
-$pageAllowlist = ['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics'];
+$pageAllowlist = ['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics', 'shows'];
 $eventAllowlist = [
     'pageview',
     'search_run',

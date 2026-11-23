@@ -1,0 +1,130 @@
+<!--
+File Name: shows.html
+Description: "Shows Near You" (Batch 4) — upcoming events within a radius of
+             a city, grouped by date. Degrades gracefully when no events
+             exist yet (the product requirement): an honest empty state with
+             a link to add the first show.
+Redesign: Windows 98 desktop metaphor.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Find shows near you on MyScene — upcoming local concerts within your radius and date window.">
+  <meta name="theme-color" content="#008080">
+  <title>Shows Near You &mdash; MyScene</title>
+  <link rel="icon" type="image/png" href="../assets/icons/mySceneLogo.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../style.css">
+</head>
+
+<body data-page="shows" data-root="../">
+
+  <a class="skipLink" href="#main">Skip to content</a>
+  <div class="starfield" aria-hidden="true"></div>
+
+  <div class="desktop">
+    <div class="window" id="mainWindow">
+      <div class="titleBar">
+        <img class="titleBarIcon" src="../assets/icons/mySceneLogo.png" alt=""
+             onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'titleBarIcon emoji',textContent:'\u{1F3AA}'}))">
+        <span class="titleBarText">Shows Near You &mdash; MyScene</span>
+        <span class="titleBarButtons">
+          <button class="tbBtn" type="button" aria-label="Minimize"><span class="glyph">&#9633;</span></button>
+          <button class="tbBtn" type="button" aria-label="Maximize"><span class="glyph">&#9633;</span></button>
+          <button class="tbBtn" type="button" aria-label="Close"><span class="glyph">&times;</span></button>
+        </span>
+      </div>
+
+      <div class="menuBar" aria-label="Menu">
+        <div class="menuWrap">
+          <span class="menu">File</span>
+          <div class="menuDrop" role="menu">
+            <a class="menuDropItem" href="../index.html">Home</a>
+            <a class="menuDropItem" href="shows.html">Shows Near You&hellip;</a>
+            <a class="menuDropItem" href="addArtist.html">Add Artist&hellip;</a>
+            <a class="menuDropItem" href="login.html">Log In&hellip;</a>
+            <div class="menuDivider"></div>
+            <a class="menuDropItem" href="register.html">Create Account&hellip;</a>
+          </div>
+        </div>
+        <div class="menuWrap">
+          <span class="menu">Help</span>
+          <div class="menuDrop" role="menu">
+            <a class="menuDropItem" href="#" data-about>About MyScene</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <span class="toolbarGrip" aria-hidden="true"></span>
+        <a class="btn ghost" href="../index.html">&larr; Back to MyScene</a>
+        <a class="btn cyan" href="addArtist.html">+ Add Artist</a>
+        <span class="spacer"></span>
+        <a class="loginLink" href="login.html">Log In</a>
+      </div>
+
+      <div class="winBody">
+        <div id="apiOfflineBanner" class="offlineBanner" role="status" hidden>
+          <p>Scene data is temporarily offline &mdash; the shows list will be back shortly.</p>
+        </div>
+
+        <main id="main">
+          <section id="showsSection" aria-labelledby="showsHeading">
+            <div class="sectionHead">
+              <div>
+                <span class="kicker">Live listings</span>
+                <h2 id="showsHeading">Shows Near You</h2>
+              </div>
+              <p id="showsContext">Find shows within a radius of a city</p>
+            </div>
+
+            <div class="locateShell">
+              <div class="searchEngine">
+                <p class="locateLabel">City</p>
+                <div class="searchEngineTop">
+                  <input type="text" placeholder="Enter city here..." id="showCity" aria-label="City" autocomplete="off">
+                  <p id="showCityNote" class="formNote" hidden>City suggestions are unavailable right now &mdash; type a city and pick a suggestion.</p>
+                </div>
+                <p class="locateLabel">Radius (miles)</p>
+                <div class="searchEngineRadius">
+                  <input type="text" value="10" id="showRadius" aria-label="Radius in miles" inputmode="decimal">
+                  <select id="showDays" aria-label="Date window">
+                    <option value="7">This week (7 days)</option>
+                    <option value="30" selected>This month (30 days)</option>
+                    <option value="90">Next quarter (90 days)</option>
+                  </select>
+                  <button id="showSearchButton" aria-label="Find shows">
+                    <img src="../assets/icons/search-circle-svgrepo-com.svg" alt="">
+                  </button>
+                </div>
+              </div>
+
+              <div id="showsResults" aria-live="polite"></div>
+            </div>
+          </section>
+        </main>
+
+        <footer>
+          <p>Created by Theta Protocol &mdash; Hoghacks Hackathon 2026 Team <a class="adminLink" href="analytics.html" hidden>Admin</a></p>
+        </footer>
+      </div>
+
+      <div class="statusBar">
+        <span class="statusPanel grow">Ready</span>
+        <span class="statusPanel">MyScene</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/ui.js"></script>
+  <script src="../js/session.js"></script>
+  <script src="../js/track.js"></script>
+  <script type="module" src="../js/shows.js"></script>
+</body>
+</html>

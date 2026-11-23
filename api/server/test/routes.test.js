@@ -87,6 +87,8 @@ test('POST /add_artist geocodes missing coordinates and proxies the insert', asy
     const call = dbApi.state.calls.find((c) => c.path === '/add_artist.php');
     assert.equal(call.body.latitude, 36.0626);
     assert.equal(call.body.longitude, -94.1574);
+    // The session-verified artist is forwarded as the activity-feed actor.
+    assert.equal(call.body.actor_username, 'artistuser');
 });
 
 test('POST /add_artist passes through a duplicate 409', async () => {
@@ -127,6 +129,9 @@ test('POST /add_event proxies the insert', async () => {
         });
     assert.equal(res.status, 200);
     assert.equal(res.body.success, true);
+    const calls = dbApi.state.calls.filter((c) => c.path === '/add_event.php');
+    // The session-verified artist is forwarded as the activity-feed actor.
+    assert.equal(calls.at(-1).body.actor_username, 'artistuser');
 });
 
 test('POST /add_event passes through a duplicate 409', async () => {
@@ -143,6 +148,69 @@ test('POST /add_event passes through a duplicate 409', async () => {
             longitude: -94.0,
         });
     assert.equal(res.status, 409);
+});
+
+// --- Batch 4: shows near you + dates filter ---
+
+test('GET /getNearbyEvents proxies the db-api with defaults', async () => {
+    const res = await request(app).get('/getNearbyEvents?lat=36.0626&lon=-94.1574');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.events.length, 1);
+    assert.equal(res.body.events[0].artist_name, 'The Belladonnas');
+    assert.equal(res.body.events[0].distance_miles, 0.4);
+    const call = dbApi.state.calls.find((c) => c.path === '/get_nearby_events.php');
+    assert.equal(call.body.latitude, 36.0626);
+    assert.equal(call.body.longitude, -94.1574);
+    assert.equal(call.body.radius, 10); // default radius
+    assert.equal(call.body.days, 30); // default window
+});
+
+test('GET /getNearbyEvents forwards explicit radius and days', async () => {
+    const res = await request(app).get('/getNearbyEvents?lat=36.0626&lon=-94.1574&radius=25&days=90');
+    assert.equal(res.status, 200);
+    const calls = dbApi.state.calls.filter((c) => c.path === '/get_nearby_events.php');
+    assert.equal(calls.at(-1).body.radius, 25);
+    assert.equal(calls.at(-1).body.days, 90);
+});
+
+test('GET /getNearbyEvents answers 200 + empty list when nothing matches', async () => {
+    const res = await request(app).get('/getNearbyEvents?lat=0&lon=0');
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body.events, []);
+});
+
+test('GET /getNearbyEvents without coordinates answers 400', async () => {
+    const res = await request(app).get('/getNearbyEvents?lat=36.0626');
+    assert.equal(res.status, 400);
+    assert.match(res.body.error, /lon/);
+});
+
+test('GET /getNearbyEvents with a non-numeric coordinate answers 400', async () => {
+    const res = await request(app).get('/getNearbyEvents?lat=abc&lon=-94.1574');
+    assert.equal(res.status, 400);
+    assert.match(res.body.error, /number/);
+});
+
+test('GET /getArtistsWithEvents proxies the db-api with the default window', async () => {
+    const res = await request(app).get('/getArtistsWithEvents');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.artists.length, 2);
+    assert.equal(res.body.artists[0].artist_name, 'The Belladonnas');
+    const call = dbApi.state.calls.find((c) => c.path === '/get_artists_with_events.php');
+    assert.equal(call.body.days, 30);
+});
+
+test('GET /getArtistsWithEvents forwards an explicit window', async () => {
+    const res = await request(app).get('/getArtistsWithEvents?days=7');
+    assert.equal(res.status, 200);
+    const calls = dbApi.state.calls.filter((c) => c.path === '/get_artists_with_events.php');
+    assert.equal(calls.at(-1).body.days, 7);
+});
+
+test('GET /getArtistsWithEvents with a non-numeric window answers 400', async () => {
+    const res = await request(app).get('/getArtistsWithEvents?days=soon');
+    assert.equal(res.status, 400);
+    assert.match(res.body.error, /number/);
 });
 
 test('POST /verify_user accepts a valid pair', async () => {

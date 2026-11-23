@@ -53,6 +53,8 @@ try {
         ':user_password' => password_hash($password, PASSWORD_BCRYPT),
     ]);
 
+    log_activity($pdo, $username, 'account_created', $username);
+
     json_response(['success' => true]);
 } catch (PDOException $e) {
     if ($e->getCode() === '23000') {

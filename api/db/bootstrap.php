@@ -175,6 +175,47 @@ function fail_with_log(Throwable $e, string $context): void
 }
 
 /* ------------------------------------------------------------------ */
+/* Activity log (admin "Recent Changes" feed)                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sanitize the actor username for the activity log.
+ *
+ * The Node API forwards the session-verified username in
+ * `actor_username`; direct db-api callers (smoke tests, scripts) may omit
+ * it. Anything missing or that is not a valid username is recorded as
+ * 'unknown' so the feed never stores arbitrary strings.
+ */
+function activity_actor(array $data, string $key = 'actor_username'): string
+{
+    $value = str_field($data, $key);
+    return preg_match('/^[a-zA-Z0-9._]{3,20}$/', $value) ? $value : 'unknown';
+}
+
+/**
+ * Append a row to the ActivityLog audit trail (see
+ * migrations/005_activity_log.sql). Best-effort by design: a logging
+ * failure must never fail the request that caused it, so errors are
+ * logged server-side and swallowed.
+ */
+function log_activity(PDO $pdo, string $actor, string $action, string $target): void
+{
+    try {
+        // VARCHAR(255) is character-based under utf8mb4; truncate by
+        // characters when mbstring is available, bytes otherwise.
+        $target = function_exists('mb_substr')
+            ? mb_substr($target, 0, 255)
+            : substr($target, 0, 255);
+        $stmt = $pdo->prepare(
+            'INSERT INTO ActivityLog (actor_username, action, target) VALUES (?, ?, ?)'
+        );
+        $stmt->execute([$actor, $action, $target]);
+    } catch (Throwable $e) {
+        error_log('[myscene:activity] ' . $e::class . ': ' . $e->getMessage());
+    }
+}
+
+/* ------------------------------------------------------------------ */
 /* Environment loading                                                 */
 /* ------------------------------------------------------------------ */
 

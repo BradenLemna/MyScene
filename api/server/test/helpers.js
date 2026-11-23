@@ -97,6 +97,39 @@ export async function startMockDbApi() {
             case 'get_artist_events':
                 json(res, 200, { events: [] });
                 break;
+            case 'get_nearby_events':
+                // (0, 0) is the mock's "nowhere" point: no events there, so
+                // the route's empty-results path is testable.
+                if (parsed.latitude === 0 && parsed.longitude === 0) {
+                    json(res, 200, { events: [] });
+                } else {
+                    json(res, 200, {
+                        events: [
+                            {
+                                id: 101,
+                                artist_name: 'The Belladonnas',
+                                venue_name: 'Smoke Venue',
+                                location_city: 'Fayetteville',
+                                location_region: 'AR',
+                                event_date: '2026-12-01',
+                                event_time: '20:00:00',
+                                ticket_url: 'https://tickets.example/belladonnas',
+                                latitude: 36.0626,
+                                longitude: -94.1574,
+                                distance_miles: 0.4,
+                            },
+                        ],
+                    });
+                }
+                break;
+            case 'get_artists_with_events':
+                json(res, 200, {
+                    artists: [
+                        { artist_name: 'The Belladonnas', music_genre: 'Rock', location_city: 'Fayetteville', location_region: 'AR' },
+                        { artist_name: 'Keathley', music_genre: 'Indie', location_city: 'Oklahoma City', location_region: 'OK' },
+                    ],
+                });
+                break;
             case 'get_nearby_artists':
                 json(res, 200, { artists: [] });
                 break;
@@ -144,7 +177,7 @@ export async function startMockDbApi() {
                 }
                 break;
             case 'track_event':
-                if (!['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics'].includes(parsed.page)) {
+                if (!['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics', 'shows'].includes(parsed.page)) {
                     json(res, 400, { error: 'Field "page" is not a known page.' });
                 } else {
                     json(res, 200, { success: true });
@@ -166,6 +199,14 @@ export async function startMockDbApi() {
                     ],
                 });
                 break;
+            case 'get_verified_artists':
+                json(res, 200, {
+                    verified_artists: [
+                        { username: 'artistuser', created_at: '2026-11-01 09:00:00', artist_verified_at: '2026-11-10 10:30:00' },
+                        { username: 'adminuser', created_at: '2026-10-01 08:00:00', artist_verified_at: null },
+                    ],
+                });
+                break;
             case 'set_artist_status':
                 if (parsed.status !== 'verified' && parsed.status !== 'none') {
                     json(res, 400, { error: 'Field "status" must be one of: verified, none.' });
@@ -178,6 +219,15 @@ export async function startMockDbApi() {
                         artist_status: parsed.status,
                     });
                 }
+                break;
+            case 'get_recent_activity':
+                json(res, 200, {
+                    recent_activity: [
+                        { actor_username: 'adminuser', action: 'artist_approved', target: 'pendinguser', created_at: '2026-11-22 15:04:05' },
+                        { actor_username: 'artistuser', action: 'event_added', target: 'The Belladonnas — Test Hall', created_at: '2026-11-22 14:30:00' },
+                        { actor_username: 'artistuser', action: 'artist_added', target: 'The Belladonnas', created_at: '2026-11-22 14:00:00' },
+                    ],
+                });
                 break;
             default:
                 json(res, 404, { error: `No such endpoint: ${req.url}` });
