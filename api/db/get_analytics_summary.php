@@ -15,8 +15,13 @@
  *     "totals": {"pageviews": N, "searches": N, "profile_views": N},
  *     "top_artists":     [{"artist": "...", "views": N}, ...],      // top 10 by profile_view
  *     "top_genres":      [{"genre": "...", "searches": N}, ...],    // top 10 by search_success
- *     "daily_pageviews": [{"date": "YYYY-MM-DD", "pageviews": N}, ...]
+ *     "daily_pageviews":     [{"date": "YYYY-MM-DD", "pageviews": N}, ...],
+ *     "daily_searches":      [{"date": "YYYY-MM-DD", "searches": N}, ...],
+ *     "daily_profile_views": [{"date": "YYYY-MM-DD", "profile_views": N}, ...]
  *   }
+ *
+ * All three daily series are continuous — zero-days are filled in so the
+ * dashboard charts render the full rolling window.
  *   400 {"error": "..."}   invalid days
  *   500 {"error": "..."}   internal error
  *
@@ -25,6 +30,40 @@
  * Legacy search_success rows ("results:{n}" only) count toward the totals
  * but not the genre ranking.
  */
+
+
+/**
+ * Build a continuous per-day series for an event over the trailing $days
+ * window, filling zero-days so the chart shows the full timeline instead of
+ * only the days with events. Rows are shaped [{date, pageviews|searches|profile_views}].
+ *
+ * @return list<array{date: string, [key: string]: mixed}>
+ */
+function daily_series(PDO $pdo, string $event, string $since, int $days, string $key): array
+{
+    $stmt = $pdo->prepare(
+        'SELECT DATE(created_at) AS day, COUNT(*) AS cnt
+         FROM AnalyticsEvents
+         WHERE event = ? AND created_at >= ?
+         GROUP BY DATE(created_at)
+         ORDER BY day ASC'
+    );
+    $stmt->execute([$event, $since]);
+    $counts = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $counts[(string) $row['day']] = (int) $row['cnt'];
+    }
+
+    $first = new DateTime();
+    $first->modify('-%d days' % ($days - 1));
+    $rows = [];
+    for ($i = 0; $i < $days; $i++) {
+        $day = $first->format('Y-m-d');
+        $rows[] = ['date' => $day, $key => $counts[$day] ?? 0];
+        $first->modify('+1 day');
+    }
+    return $rows;
+}
 
 require __DIR__ . '/bootstrap.php';
 
@@ -119,26 +158,19 @@ try {
         $b['searches'] <=> $a['searches'] ?: strcmp($a['genre'], $b['genre']));
     $topGenres = array_slice($genreItems, 0, 10);
 
-    // ---------- daily pageview series ----------
-    $stmt = $pdo->prepare(
-        'SELECT DATE(created_at) AS day, COUNT(*) AS pageviews
-         FROM AnalyticsEvents
-         WHERE event = "pageview" AND created_at >= ?
-         GROUP BY DATE(created_at)
-         ORDER BY day ASC'
-    );
-    $stmt->execute([$since]);
-    $dailyPageviews = [];
-    foreach ($stmt->fetchAll() as $row) {
-        $dailyPageviews[] = ['date' => (string) $row['day'], 'pageviews' => (int) $row['pageviews']];
-    }
+    // ---------- daily series (pageviews, searches, profile_views) ----------
+    $dailyPageviews = daily_series($pdo, 'pageview', $since, $days, 'pageviews');
+    $dailySearches = daily_series($pdo, 'search_run', $since, $days, 'searches');
+    $dailyProfileViews = daily_series($pdo, 'profile_view', $since, $days, 'profile_views');
 
     json_response([
-        'days'            => $days,
-        'totals'          => $totals,
-        'top_artists'     => $topArtists,
-        'top_genres'      => $topGenres,
-        'daily_pageviews' => $dailyPageviews,
+        'days'              => $days,
+        'totals'            => $totals,
+        'top_artists'       => $topArtists,
+        'top_genres'        => $topGenres,
+        'daily_pageviews'   => $dailyPageviews,
+        'daily_searches'    => $dailySearches,
+        'daily_profile_views' => $dailyProfileViews,
     ]);
 } catch (PDOException $e) {
     fail_with_log($e, 'get_analytics_summary');

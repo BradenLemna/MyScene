@@ -10,6 +10,8 @@
  * Body (JSON):
  *   target_username (required — an existing account)
  *   status          (required — one of: verified, none)
+ *   actor_username  (optional — the admin's session-verified username the
+ *                    Node API forwards; recorded in the admin activity feed)
  *
  * Responses:
  *   200 {"success": true, "username": "...", "artist_status": "..."}
@@ -35,11 +37,23 @@ if (!in_array($status, ['verified', 'none'], true)) {
 }
 
 try {
-    $stmt = $pdo->prepare('UPDATE Users SET artist_status = ? WHERE username = ?');
-    $stmt->execute([$status, $username]);
+    // artist_verified_at tracks when the role was last granted: set on
+    // approve, cleared on reject/revoke. Single statement keeps the two
+    // columns consistent.
+    $stmt = $pdo->prepare(
+        'UPDATE Users
+         SET artist_status = ?,
+             artist_verified_at = IF(? = "verified", NOW(), NULL)
+         WHERE username = ?'
+    );
+    $stmt->execute([$status, $status, $username]);
     if ($stmt->rowCount() === 0) {
         json_error('User not found.', 404);
     }
+    log_activity($pdo, activity_actor($data),
+        $status === 'verified' ? 'artist_approved' : 'artist_rejected',
+        $username);
+
     json_response([
         'success'       => true,
         'username'      => $username,

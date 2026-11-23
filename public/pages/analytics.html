@@ -98,15 +98,26 @@ Redesign: Windows 98 desktop metaphor.
                                 <div class="formPanel dashChartPanel" data-title="Daily pageviews">
                                     <p class="formNote" id="chartNote" aria-live="polite"></p>
                                     <svg id="trafficChart" role="img" aria-label="Daily pageviews bar chart"
-                                         viewBox="0 0 640 180" preserveAspectRatio="xMidYMid meet"></svg>
+                                         viewBox="0 0 640 170" preserveAspectRatio="xMidYMid meet"></svg>
+                                </div>
+
+                                <div class="dashLists">
+                                    <div class="formPanel dashChartPanel" data-title="Daily searches">
+                                        <svg id="searchesChart" role="img" aria-label="Daily searches bar chart"
+                                             viewBox="0 0 640 132" preserveAspectRatio="xMidYMid meet"></svg>
+                                    </div>
+                                    <div class="formPanel dashChartPanel" data-title="Daily profile views">
+                                        <svg id="profileViewsChart" role="img" aria-label="Daily profile views bar chart"
+                                             viewBox="0 0 640 132" preserveAspectRatio="xMidYMid meet"></svg>
+                                    </div>
                                 </div>
 
                                 <div class="dashLists">
                                     <div class="formPanel" data-title="Top artists">
-                                        <ol class="dashList" id="topArtists"></ol>
+                                        <div class="topBars" id="topArtists"></div>
                                     </div>
                                     <div class="formPanel" data-title="Top genres">
-                                        <ol class="dashList" id="topGenres"></ol>
+                                        <div class="topBars" id="topGenres"></div>
                                     </div>
                                 </div>
                             </div>
@@ -133,6 +144,48 @@ Redesign: Windows 98 desktop metaphor.
                                     <tbody id="pendingBody"></tbody>
                                 </table>
                                 <p class="emptyState" id="pendingEmpty">No pending requests.</p>
+                            </div>
+                        </section>
+
+                        <!-- Artist profiles -->
+                        <section class="dashSection" aria-labelledby="verifiedHeading">
+                            <div class="sectionHead">
+                                <div>
+                                    <span class="kicker">Artist accounts</span>
+                                    <h2 id="verifiedHeading">Artist Profiles</h2>
+                                </div>
+                                <p id="verifiedCount"></p>
+                            </div>
+                            <div class="dashBody">
+                                <table class="dashTable" id="verifiedTable" hidden>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Username</th>
+                                            <th scope="col">Account created</th>
+                                            <th scope="col">Artist since</th>
+                                            <th scope="col">Role</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="verifiedBody"></tbody>
+                                </table>
+                                <p class="emptyState" id="verifiedEmpty">No verified artists yet.</p>
+                            </div>
+                        </section>
+
+                        <!-- Recent changes -->
+                        <section class="dashSection" aria-labelledby="activityHeading">
+                            <div class="sectionHead">
+                                <div>
+                                    <span class="kicker">Activity</span>
+                                    <h2 id="activityHeading">Recent Changes</h2>
+                                </div>
+                                <p id="activityCount"></p>
+                            </div>
+                            <div class="dashBody">
+                                <div class="formPanel" data-title="Latest 25">
+                                    <ul class="activityFeed" id="activityFeed"></ul>
+                                    <p class="emptyState" id="activityEmpty" hidden>No changes recorded yet.</p>
+                                </div>
                             </div>
                         </section>
                     </div>

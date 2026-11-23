@@ -1,15 +1,25 @@
 // Admin dashboard routes (Batch 3): the analytics summary, the pending-
-// artist queue, and artist approval/rejection.
+// artist queue, artist approval/rejection, and the recent-changes feed.
 //
 //   GET  /getAnalyticsSummary?days=30|90|365
-//        -> {days, totals, top_artists, top_genres, daily_pageviews}
+//        -> {days, totals, top_artists, top_genres, daily_pageviews, daily_searches, daily_profile_views}
 //        Read-only; no session required (the data is aggregate, no PII).
 //   GET  /getPendingArtists
 //        -> {pending_artists: [{username, created_at}, ...]}
 //        Admin-only (401 without a session, 403 for non-admins).
+//   GET  /getVerifiedArtists
+//        -> {verified_artists: [{username, created_at, artist_verified_at}, ...]}
+//        Admin-only; the accounts that currently hold the artist role
+//        (the "Artist Profiles" section).
 //   POST /setArtistStatus  {target_username, status}
 //        -> {success, username, artist_status}
 //        Admin-only; status is 'verified' (approve) or 'none' (reject).
+//        The admin's username is forwarded to the db-api as the
+//        activity-feed actor.
+//   GET  /getRecentActivity
+//        -> {recent_activity: [{actor_username, action, target, created_at}, ...]}
+//        Admin-only; the 25 newest ActivityLog entries (the "Recent
+//        Changes" section).
 
 import { Router } from 'express';
 
@@ -46,13 +56,28 @@ router.get('/getPendingArtists', requireAdmin(), asyncHandler(async (req, res) =
     res.json(data);
 }));
 
+router.get('/getVerifiedArtists', requireAdmin(), asyncHandler(async (req, res) => {
+    const data = await dbApi.getVerifiedArtists();
+    res.json(data);
+}));
+
 router.post('/setArtistStatus', requireAdmin(), asyncHandler(async (req, res) => {
     const body = requireFields(req.body, ['target_username', 'status']);
     const status = strField(body, 'status');
     if (!ARTIST_STATUSES.includes(status)) {
         throw new ApiError('Field "status" must be one of: verified, none.', 400);
     }
-    const data = await dbApi.setArtistStatus(strField(body, 'target_username'), status);
+    const data = await dbApi.setArtistStatus(
+        strField(body, 'target_username'),
+        status,
+        // Session-verified admin, recorded as the feed's actor.
+        req.sessionUser.username,
+    );
+    res.json(data);
+}));
+
+router.get('/getRecentActivity', requireAdmin(), asyncHandler(async (req, res) => {
+    const data = await dbApi.getRecentActivity();
     res.json(data);
 }));
 

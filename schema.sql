@@ -40,7 +40,11 @@ CREATE TABLE Events (
         REFERENCES Artists (id) ON DELETE CASCADE,
     -- One listing per artist / venue / date; add_event.php answers 409.
     CONSTRAINT uq_events_listing UNIQUE (artist_id, venue_name, event_date),
-    INDEX idx_events_date (event_date)
+    INDEX idx_events_date (event_date),
+    -- Batch 4: get_nearby_events.php filters on these (bounding box before
+    -- the exact haversine; live-database version:
+    -- migrations/007_events_coords_index.sql).
+    INDEX idx_events_coords (latitude, longitude)
 );
 
 CREATE TABLE Users (
@@ -57,6 +61,10 @@ CREATE TABLE Users (
     -- shows this for pending users; live-database version:
     -- migrations/004_users_created_at.sql).
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- When the artist role was last granted by an admin (NULL for fans /
+    -- pending / revoked; live-database version:
+    -- migrations/006_users_artist_verified_at.sql).
+    artist_verified_at TIMESTAMP NULL DEFAULT NULL,
 
     PRIMARY KEY (username, user_password),
     -- username is unique in practice; the composite PK above does not
@@ -90,6 +98,23 @@ CREATE TABLE Sessions (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
     INDEX idx_sessions_username (username)
+);
+
+-- Admin "Recent Changes" feed (live-database version:
+-- migrations/005_activity_log.sql). Append-only audit trail: who changed
+-- what and when (artist/event adds, artist approvals/rejections,
+-- access requests, account creations).
+DROP TABLE IF EXISTS ActivityLog;
+
+CREATE TABLE ActivityLog (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    actor_username VARCHAR(20) NOT NULL,
+    -- artist_added | event_added | artist_approved | artist_rejected |
+    -- artist_requested | account_created
+    action VARCHAR(30) NOT NULL,
+    target VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_activity_created (created_at)
 );
 
 -- Example Input

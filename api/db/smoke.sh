@@ -56,7 +56,10 @@ if [ -z "$DB_PASSWORD" ] && [ -f .env ]; then
 fi
 [ -n "$DB_PASSWORD" ] || die "No DB password — set DB_PASSWORD or fill in the repo-root .env"
 
-mysql_cli() { mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$@"; }
+# --skip-ssl: the disposable MariaDB container ships without TLS certs, and
+# newer MariaDB clients (11.8+) enable SSL by default. Accepted by both the
+# MySQL 8 client (CI) and the MariaDB client.
+mysql_cli() { mysql --skip-ssl -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" "$@"; }
 
 log "Waiting for MariaDB at $DB_HOST:$DB_PORT ..."
 for _ in $(seq 1 30); do
@@ -169,14 +172,17 @@ expect_status "get_artist (existing)" 200 POST /get_artist.php '{"artist_name":"
 expect_status "get_artist (missing)" 404 POST /get_artist.php '{"artist_name":"No Such Band XYZ"}'
 
 expect_status "add_artist (new)" 200 POST /add_artist.php \
-    '{"artist_name":"Smoke Test Band","location_city":"Fayetteville","location_region":"AR","music_genre":"Rock","latitude":36.0626,"longitude":-94.1574}'
+    '{"artist_name":"Smoke Test Band","location_city":"Fayetteville","location_region":"AR","music_genre":"Rock","latitude":36.0626,"longitude":-94.1574,"actor_username":"smoke_user"}'
 expect_contains "add_artist shape" '"success":true'
+# The response id must be the new Artists row, not the ActivityLog row the
+# same request inserts (lastInsertId is connection-wide).
+expect_contains "add_artist id is a new row" '"id":[1-9]'
 expect_status "add_artist (duplicate)" 409 POST /add_artist.php \
     '{"artist_name":"Smoke Test Band","location_city":"Fayetteville","location_region":"AR","music_genre":"Rock"}'
 expect_status "add_artist (missing field)" 400 POST /add_artist.php '{"artist_name":"Incomplete"}'
 
 expect_status "add_event (new)" 200 POST /add_event.php \
-    '{"artist_name":"Smoke Test Band","venue_name":"Smoke Venue","location_city":"Fayetteville","location_region":"AR","event_date":"2026-12-01","event_time":"20:00"}'
+    '{"artist_name":"Smoke Test Band","venue_name":"Smoke Venue","location_city":"Fayetteville","location_region":"AR","event_date":"2026-12-01","event_time":"20:00","actor_username":"smoke_user"}'
 expect_status "add_event (duplicate)" 409 POST /add_event.php \
     '{"artist_name":"Smoke Test Band","venue_name":"Smoke Venue","location_city":"Fayetteville","location_region":"AR","event_date":"2026-12-01"}'
 expect_status "add_event (unknown artist)" 404 POST /add_event.php \
@@ -187,6 +193,71 @@ expect_contains "get_artist_events shape" '"events"'
 
 expect_status "get_nearby_artists" 200 POST /get_nearby_artists.php \
     '{"latitude":36.0626,"longitude":-94.1574,"radius":10}'
+
+# --- shows near you (Batch 4): nearby events + dates filter ---
+# The migration 007 index must be in place (schema.sql + migrations above).
+if mysql_cli -e "SHOW INDEX FROM \`$DB_NAME\`.Events WHERE Key_name='idx_events_coords'" | grep -q idx_events_coords; then
+    PASS=$((PASS + 1))
+    echo "  ok    idx_events_coords exists"
+else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL  idx_events_coords missing from Events"
+fi
+
+# Events at known offsets from today (relative dates keep the window checks
+# independent of when the smoke test runs), seeded through the real
+# add_event endpoint. "Smoke Test Band" exists from the add_artist checks.
+D_IN_3="$(date -d '+3 days' +%F)"
+D_IN_10="$(date -d '+10 days' +%F)"
+D_PAST="$(date -d '-3 days' +%F)"
+
+expect_status "add_event (in 3 days)" 200 POST /add_event.php \
+    "{\"artist_name\":\"Smoke Test Band\",\"venue_name\":\"Smoke Venue Near\",\"location_city\":\"Fayetteville\",\"location_region\":\"AR\",\"event_date\":\"$D_IN_3\",\"event_time\":\"20:00\",\"ticket_url\":\"https://tickets.example/near\",\"latitude\":36.0626,\"longitude\":-94.1574}"
+expect_status "add_event (in 10 days)" 200 POST /add_event.php \
+    "{\"artist_name\":\"Smoke Test Band\",\"venue_name\":\"Smoke Venue Far\",\"location_city\":\"Fayetteville\",\"location_region\":\"AR\",\"event_date\":\"$D_IN_10\",\"latitude\":36.0626,\"longitude\":-94.1574}"
+expect_status "add_event (past)" 200 POST /add_event.php \
+    "{\"artist_name\":\"Smoke Test Band\",\"venue_name\":\"Smoke Venue Past\",\"location_city\":\"Fayetteville\",\"location_region\":\"AR\",\"event_date\":\"$D_PAST\",\"latitude\":36.0626,\"longitude\":-94.1574}"
+# A second artist whose only show is 10 days out — the Dates-filter window
+# check needs an artist that falls outside the 7-day window.
+expect_status "add_artist (events band)" 200 POST /add_artist.php \
+    '{"artist_name":"Smoke Events Band","location_city":"Fayetteville","location_region":"AR","music_genre":"Rock","latitude":36.0626,"longitude":-94.1574}'
+expect_status "add_event (events band, in 10 days)" 200 POST /add_event.php \
+    "{\"artist_name\":\"Smoke Events Band\",\"venue_name\":\"Smoke Venue Solo\",\"location_city\":\"Fayetteville\",\"location_region\":\"AR\",\"event_date\":\"$D_IN_10\",\"latitude\":36.0626,\"longitude\":-94.1574}"
+
+expect_status "get_nearby_events (Fayetteville, 10mi, 7d)" 200 POST /get_nearby_events.php \
+    '{"latitude":36.0626,"longitude":-94.1574,"radius":10,"days":7}'
+expect_contains "get_nearby_events shape" '"events"'
+expect_contains "get_nearby_events lists the 3-day show" '"venue_name":"Smoke Venue Near"'
+expect_contains "get_nearby_events joins the artist name" '"artist_name":"Smoke Test Band"'
+expect_contains "get_nearby_events has distance" '"distance_miles"'
+expect_not_contains "get_nearby_events excludes the 10-day show (7d window)" '"venue_name":"Smoke Venue Far"'
+expect_not_contains "get_nearby_events excludes past shows" '"venue_name":"Smoke Venue Past"'
+
+expect_status "get_nearby_events (30d window, default radius)" 200 POST /get_nearby_events.php \
+    '{"latitude":36.0626,"longitude":-94.1574,"days":30}'
+expect_contains "get_nearby_events 30d includes the 10-day show" '"venue_name":"Smoke Venue Far"'
+
+expect_status "get_nearby_events (far away)" 200 POST /get_nearby_events.php \
+    '{"latitude":40.7128,"longitude":-74.006,"radius":10,"days":30}'
+expect_not_contains "get_nearby_events radius excludes distant shows" '"Smoke Venue'
+
+expect_status "get_nearby_events (missing coords)" 400 POST /get_nearby_events.php '{"radius":10}'
+expect_status "get_nearby_events (out-of-range coords)" 400 POST /get_nearby_events.php '{"latitude":95,"longitude":-94.1574}'
+expect_status "get_nearby_events (bad radius)" 400 POST /get_nearby_events.php '{"latitude":36.0626,"longitude":-94.1574,"radius":0}'
+expect_status "get_nearby_events (fractional days)" 400 POST /get_nearby_events.php '{"latitude":36.0626,"longitude":-94.1574,"days":7.5}'
+
+expect_status "get_artists_with_events (7d)" 200 POST /get_artists_with_events.php '{"days":7}'
+expect_contains "get_artists_with_events shape" '"artists"'
+expect_contains "get_artists_with_events 7d lists the 3-day artist" '"artist_name":"Smoke Test Band"'
+expect_not_contains "get_artists_with_events 7d excludes the 10-day-only artist" '"Smoke Events Band"'
+
+expect_status "get_artists_with_events (30d)" 200 POST /get_artists_with_events.php '{"days":30}'
+expect_contains "get_artists_with_events 30d lists the 10-day-only artist" '"Smoke Events Band"'
+
+expect_status "get_artists_with_events (1d)" 200 POST /get_artists_with_events.php '{"days":1}'
+expect_not_contains "get_artists_with_events 1d excludes the 10-day-only artist" '"Smoke Events Band"'
+
+expect_status "get_artists_with_events (bad days)" 400 POST /get_artists_with_events.php '{"days":"soon"}'
 
 expect_status "verify_user (valid)" 200 POST /verify_user.php \
     '{"username":"smoke_user","password":"smoke-password"}'
@@ -246,17 +317,25 @@ expect_contains "get_pending_artists lists smoke_user" '"username":"smoke_user"'
 expect_contains "get_pending_artists has created_at" '"created_at"'
 
 expect_status "set_artist_status (approve)" 200 POST /set_artist_status.php \
-    '{"target_username":"smoke_user","status":"verified"}'
+    '{"target_username":"smoke_user","status":"verified","actor_username":"smoke_user"}'
 expect_contains "set_artist_status (approve) shape" '"success":true'
 expect_contains "set_artist_status (approve) status" '"artist_status":"verified"'
+
+# --- artist profiles: verified accounts + revoking the role ---
+expect_status "get_verified_artists (after approve)" 200 POST /get_verified_artists.php '{}'
+expect_contains "get_verified_artists shape" '"verified_artists"'
+expect_contains "get_verified_artists lists smoke_user" '"username":"smoke_user"'
+expect_contains "get_verified_artists has artist_verified_at" '"artist_verified_at":"2'
 expect_status "me (after approve) shows verified" 200 POST /me.php "{\"session_id\":\"$SESSION_ID\"}"
 expect_contains "me (after approve) artist_status" '"artist_status":"verified"'
 expect_status "get_pending_artists (empty after approve)" 200 POST /get_pending_artists.php '{}'
 expect_not_contains "get_pending_artists no longer lists smoke_user" '"username":"smoke_user"'
 
 expect_status "set_artist_status (reject)" 200 POST /set_artist_status.php \
-    '{"target_username":"smoke_user","status":"none"}'
+    '{"target_username":"smoke_user","status":"none","actor_username":"smoke_user"}'
 expect_contains "set_artist_status (reject) status" '"artist_status":"none"'
+expect_status "get_verified_artists (after revoke)" 200 POST /get_verified_artists.php '{}'
+expect_not_contains "get_verified_artists no longer lists smoke_user" '"username":"smoke_user"'
 expect_status "set_artist_status (bad status)" 400 POST /set_artist_status.php \
     '{"target_username":"smoke_user","status":"hacker"}'
 expect_status "set_artist_status (bad username)" 400 POST /set_artist_status.php \
@@ -265,6 +344,23 @@ expect_status "set_artist_status (unknown user)" 404 POST /set_artist_status.php
     '{"target_username":"no_such_user_xyz","status":"verified"}'
 expect_status "set_artist_status (missing field)" 400 POST /set_artist_status.php \
     '{"target_username":"smoke_user"}'
+
+# --- recent changes: the activity feed (admin dashboard) ---
+# By this point the feed holds: artist_added + event_added (the adds above,
+# attributed to smoke_user via actor_username), account_created (smoke_fan's
+# registration), artist_requested, and artist_approved + artist_rejected
+# (the status changes above).
+expect_status "get_recent_activity (shape)" 200 POST /get_recent_activity.php '{}'
+expect_contains "get_recent_activity shape" '"recent_activity"'
+expect_contains "get_recent_activity artist_added" '"actor_username":"smoke_user","action":"artist_added"'
+expect_contains "get_recent_activity artist_added target" '"target":"Smoke Test Band"'
+expect_contains "get_recent_activity event_added" '"actor_username":"smoke_user","action":"event_added"'
+expect_contains "get_recent_activity event_added target" '"target":"Smoke Test Band — Smoke Venue"'
+expect_contains "get_recent_activity account_created" '"actor_username":"smoke_fan","action":"account_created"'
+expect_contains "get_recent_activity artist_requested" '"actor_username":"smoke_user","action":"artist_requested"'
+expect_contains "get_recent_activity artist_approved" '"actor_username":"smoke_user","action":"artist_approved"'
+expect_contains "get_recent_activity artist_rejected" '"actor_username":"smoke_user","action":"artist_rejected"'
+expect_contains "get_recent_activity has created_at" '"created_at"'
 
 # Seed a few analytics events through the real endpoint, then query the
 # summary (all inside the 30-day window).
@@ -284,6 +380,8 @@ expect_contains "get_analytics_summary top artist row" '"artist":"Smoke Test Ban
 expect_contains "get_analytics_summary top_genres" '"top_genres"'
 expect_contains "get_analytics_summary top genre row" '"genre":"Rock"'
 expect_contains "get_analytics_summary daily series" '"daily_pageviews"'
+expect_contains "get_analytics_summary daily searches" '"daily_searches"'
+expect_contains "get_analytics_summary daily profile views" '"daily_profile_views"'
 expect_status "get_analytics_summary (default days)" 200 POST /get_analytics_summary.php '{}'
 expect_status "get_analytics_summary (bad days)" 400 POST /get_analytics_summary.php '{"days":7}'
 expect_status "get_analytics_summary (non-numeric days)" 400 POST /get_analytics_summary.php '{"days":"soon"}'
@@ -295,6 +393,7 @@ expect_status "logout (missing field)" 400 POST /logout.php '{}'
 
 expect_status "track_event (valid)" 200 POST /track_event.php '{"page":"index","event":"pageview"}'
 expect_contains "track_event (valid) shape" '"success":true'
+expect_status "track_event (shows page)" 200 POST /track_event.php '{"page":"shows","event":"pageview"}'
 expect_status "track_event (bad page)" 400 POST /track_event.php '{"page":"hacker","event":"pageview"}'
 expect_status "track_event (bad event)" 400 POST /track_event.php '{"page":"index","event":"hacker"}'
 
