@@ -117,6 +117,17 @@ CREATE TABLE ActivityLog (
     INDEX idx_activity_created (created_at)
 );
 
+-- Server-side favorites (live-database version:
+-- migrations/008_user_favorites.sql). One row per (user, artist) favorite.
+DROP TABLE IF EXISTS UserFavorites;
+
+CREATE TABLE UserFavorites (
+    username VARCHAR(20) NOT NULL,
+    artist_name VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (username, artist_name)
+);
+
 -- Example Input
 INSERT INTO Users (username, user_password) VALUES ("mrpepsi", "12345");
 INSERT INTO Users (username, user_password) VALUES ("whisperingcoder", "23456");

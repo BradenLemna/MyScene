@@ -40,7 +40,9 @@ async function apiFetch(path, options)
         const message = data && typeof data.error === 'string'
             ? data.error
             : `API request failed (HTTP ${response.status}).`;
-        throw new Error(message);
+        const err = new Error(message);
+        err.status = response.status;
+        throw err;
     }
 
     return data;
@@ -172,4 +174,19 @@ export async function getRecentActivity() // Calls the server to get the recent-
 {
     const data = await apiFetch('/getRecentActivity');
     return data.recent_activity
+}
+
+export async function getFavorites() // Calls the server to get the signed-in user's favorited artists (full rows, alphabetical)
+{
+    const data = await apiFetch('/getFavorites');
+    return data.favorites
+}
+
+export async function toggleFavorite(artistName) // Calls the server to toggle one favorite for the signed-in user; the username never travels with the request (the Node route takes it from the session)
+{
+    return apiFetch('/toggleFavorite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ artist_name: artistName })
+    });
 }

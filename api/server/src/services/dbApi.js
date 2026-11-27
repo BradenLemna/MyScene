@@ -53,4 +53,7 @@ export const dbApi = {
             actor_username: actorUsername,
         }),
     getRecentActivity: () => callDb('get_recent_activity.php'),
+    getFavorites: (username) => callDb('get_favorites.php', { username }),
+    toggleFavorite: (username, artistName) =>
+        callDb('toggle_favorite.php', { username, artist_name: artistName }),
 };

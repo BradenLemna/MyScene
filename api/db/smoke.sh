@@ -362,6 +362,45 @@ expect_contains "get_recent_activity artist_approved" '"actor_username":"smoke_u
 expect_contains "get_recent_activity artist_rejected" '"actor_username":"smoke_user","action":"artist_rejected"'
 expect_contains "get_recent_activity has created_at" '"created_at"'
 
+# --- favorites (Batch 5): server-side favorites + the UserFavorites table ---
+# The migration must be in place (schema.sql also creates the table).
+if mysql_cli -e "SHOW TABLES FROM \`$DB_NAME\` LIKE 'UserFavorites'" | grep -q UserFavorites; then
+    PASS=$((PASS + 1))
+    echo "  ok    UserFavorites table exists"
+else
+    FAIL=$((FAIL + 1))
+    echo "  FAIL  UserFavorites table missing"
+fi
+
+expect_status "get_favorites (unknown user)" 200 POST /get_favorites.php '{"username":"no_such_user_zzz"}'
+expect_contains "get_favorites (unknown user) is empty" '"favorites":\[\]'
+expect_status "get_favorites (missing field)" 400 POST /get_favorites.php '{}'
+expect_status "get_favorites (bad username)" 400 POST /get_favorites.php '{"username":"bad user name!"}'
+
+expect_status "toggle_favorite (new)" 200 POST /toggle_favorite.php \
+    '{"username":"smoke_user","artist_name":"Smoke Test Band"}'
+expect_contains "toggle_favorite new shape" '"favorited":true'
+
+expect_status "get_favorites (smoke_user)" 200 POST /get_favorites.php '{"username":"smoke_user"}'
+expect_contains "get_favorites (smoke_user) lists the favorite" '"artist_name":"Smoke Test Band"'
+expect_contains "get_favorites (smoke_user) full row" '"music_genre":"Rock"'
+
+expect_status "toggle_favorite (existing)" 200 POST /toggle_favorite.php \
+    '{"username":"smoke_user","artist_name":"Smoke Test Band"}'
+expect_contains "toggle_favorite existing shape (off)" '"favorited":false'
+
+expect_status "get_favorites (after toggle off)" 200 POST /get_favorites.php '{"username":"smoke_user"}'
+expect_not_contains "get_favorites (after toggle off) excludes the band" '"artist_name":"Smoke Test Band"'
+
+expect_status "toggle_favorite (unknown artist)" 404 POST /toggle_favorite.php \
+    '{"username":"smoke_user","artist_name":"No Such Band XYZ"}'
+expect_status "toggle_favorite (missing artist_name)" 400 POST /toggle_favorite.php \
+    '{"username":"smoke_user"}'
+expect_status "toggle_favorite (missing username)" 400 POST /toggle_favorite.php \
+    '{"artist_name":"Smoke Test Band"}'
+expect_status "toggle_favorite (bad username)" 400 POST /toggle_favorite.php \
+    '{"username":"bad user name!","artist_name":"Smoke Test Band"}'
+
 # Seed a few analytics events through the real endpoint, then query the
 # summary (all inside the 30-day window).
 expect_status "track_event (search_success)" 200 POST /track_event.php \

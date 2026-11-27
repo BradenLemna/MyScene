@@ -26,7 +26,7 @@ require __DIR__ . '/bootstrap.php';
 
 $data = read_json_body();
 
-$pageAllowlist = ['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics', 'shows'];
+$pageAllowlist = ['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics', 'shows', 'myFavorites'];
 $eventAllowlist = [
     'pageview',
     'search_run',

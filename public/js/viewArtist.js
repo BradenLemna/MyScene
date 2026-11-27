@@ -3,6 +3,7 @@
 // the ?artist= query parameter.
 import * as apiCalls from "../js/api.js";
 import { checkApiHealth, showOfflineBanner } from "./status.js";
+import * as favorites from "./favorites.js";
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -41,52 +42,40 @@ if (artistParam) {
     document.getElementById("artistName").textContent = artistParam;
 }
 
-// UX-06: "Fav Artist" persists per-artist in localStorage (decided
-// 2026-10-19; a real favorites endpoint is a future login-gate
-// candidate). Storage failures (e.g. private mode) degrade to the old
-// visual-only behavior — this must never throw.
-const FAV_STORAGE_KEY = "myscene:favs";
-
-function loadFavs() {
-    try {
-        return JSON.parse(localStorage.getItem(FAV_STORAGE_KEY)) || {};
-    } catch {
-        return {};
-    }
-}
-
-function setFavStored(name, isFav) {
-    try {
-        const favs = loadFavs();
-        if (isFav) favs[name] = true;
-        else delete favs[name];
-        localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(favs));
-    } catch {
-        // Storage unavailable (private mode etc.) — visual-only fallback.
-    }
-}
-
+// Batch 5: "Fav Artist" is server-side (see public/js/favorites.js) — the
+// heart reflects the signed-in user's real favorites, and guests are sent
+// to the login page instead of failing silently.
 const favButton = document.getElementById("favArtist");
-function renderFav(isFav) {
+function renderFavLabel(isFav) {
     favButton.classList.toggle("active", isFav);
     favButton.setAttribute("aria-pressed", String(isFav));
-    favButton.innerHTML = favLabel(isFav);
+    favButton.innerHTML = isFav ? "&#9733; Favorited" : "&hearts; Fav Artist";
 }
 
-function favLabel(isFav) {
-    return isFav ? "&#9733; Favorited" : "&hearts; Fav Artist";
+function renderFav(isFav) {
+    renderFavLabel(isFav);
+    favButton.disabled = false;
 }
 
-// Restore this artist's stored state as early as the name is known,
-// so a returning visitor sees their favorite immediately (UX-06).
-if (artistParam && loadFavs()[artistParam]) renderFav(true);
+// Restore this artist's state as early as the name is known, so a returning
+// visitor sees their favorite immediately (UX-06).
+if (artistParam) {
+    favButton.dataset.heartArtist = artistParam;
+    favorites.isFavorite(artistParam).then((isFav) => renderFav(isFav));
+}
 
-favButton.addEventListener("click", function() {
-    const isNowActive = this.classList.toggle("active");
-    renderFav(isNowActive);
-    if (artistParam) setFavStored(artistParam, isNowActive);
-    // EXP-002: profile interaction, same detail shape as profile_view.
-    track("fav_toggle", artistParam ? `artist:${artistParam}` : undefined);
+favButton.addEventListener("click", async () => {
+    const name = currentArtist?.artist_name ?? artistParam;
+    if (!name) return;
+    favButton.disabled = true;
+    try {
+        // toggleFavorite fires the fav_toggle event and syncs every heart on
+        // the page; a guest click redirects to login (the promise never resolves).
+        const favorited = await favorites.toggleFavorite(name);
+        if (favorited !== null) renderFav(favorited);
+    } finally {
+        favButton.disabled = false;
+    }
 });
 
 // "View Similar" -> homepage genre search for this artist's genre.

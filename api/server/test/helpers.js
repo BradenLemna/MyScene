@@ -177,7 +177,7 @@ export async function startMockDbApi() {
                 }
                 break;
             case 'track_event':
-                if (!['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics', 'shows'].includes(parsed.page)) {
+                if (!['index', 'viewArtist', 'addArtist', 'login', 'register', 'analytics', 'shows', 'myFavorites'].includes(parsed.page)) {
                     json(res, 400, { error: 'Field "page" is not a known page.' });
                 } else {
                     json(res, 200, { success: true });
@@ -228,6 +228,39 @@ export async function startMockDbApi() {
                         { actor_username: 'adminuser', action: 'artist_approved', target: 'pendinguser', created_at: '2026-11-22 15:04:05' },
                         { actor_username: 'artistuser', action: 'event_added', target: 'The Belladonnas — Test Hall', created_at: '2026-11-22 14:30:00' },
                         { actor_username: 'artistuser', action: 'artist_added', target: 'The Belladonnas', created_at: '2026-11-22 14:00:00' },
+                    ],
+                });
+                break;
+            case 'toggle_favorite':
+                if (parsed.artist_name === 'Not a Band') {
+                    json(res, 404, { error: 'Artist not found.' });
+                    break;
+                }
+                if (parsed.artist_name === 'Already Fav') {
+                    json(res, 200, { favorited: false });
+                    break;
+                }
+                json(res, 200, { favorited: true });
+                break;
+            case 'get_favorites':
+                if (parsed.username === 'guestnowhere') {
+                    json(res, 200, { favorites: [] });
+                    break;
+                }
+                json(res, 200, {
+                    favorites: [
+                        {
+                            artist_name: 'The Belladonnas',
+                            music_genre: 'indie rock',
+                            location_city: 'Fayetteville',
+                            location_region: 'Arkansas',
+                        },
+                        {
+                            artist_name: 'Keathley',
+                            music_genre: 'pop rock',
+                            location_city: 'Greentop',
+                            location_region: 'Kansas',
+                        },
                     ],
                 });
                 break;

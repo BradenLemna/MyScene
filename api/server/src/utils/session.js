@@ -130,6 +130,37 @@ export function requireAdmin() {
 }
 
 /**
+ * Middleware: require a valid session (any account) — used by the favorites
+ * routes. 401 when the cookie is missing or the session is unknown/expired
+ * (unlike requireSession, which passes the 404 through so GET /me mirrors
+ * the PHP contract). Attaches the account to req.sessionUser.
+ */
+export function requireLoggedIn() {
+    return async (req, res, next) => {
+        const sessionId = sessionIdFromRequest(req);
+        if (sessionId === null) {
+            return next(new ApiError('Log in to continue.', 401));
+        }
+        try {
+            const me = await dbApi.me(sessionId);
+            req.sessionUser = {
+                sessionId,
+                username: me?.username,
+                isAdmin: me?.is_admin === true,
+                artistStatus: me?.artist_status,
+            };
+            next();
+        } catch (err) {
+            if (err.name === 'UpstreamError' && err.status === 404) {
+                // Unknown/expired session: answer "not logged in", not 404.
+                return next(new ApiError('Log in to continue.', 401));
+            }
+            next(err);
+        }
+    };
+}
+
+/**
  * Middleware for POST /add_artist and POST /add_event: require a valid
  * session whose account is a verified artist (artist_status='verified').
  * 401 when the session is missing or unknown/expired, 403 when logged in

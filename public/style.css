@@ -1083,6 +1083,37 @@ section{ padding:0; }
   background:
     repeating-conic-gradient(#e8e4da 0% 25%, #d8d4c8 0% 50%) 0 0 / 6px 6px;
 }
+.cardHeart{
+  position:absolute;
+  top:6px;
+  right:6px;
+  z-index:2;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  padding:0;
+  font-size:16px;
+  line-height:1;
+  color:var(--w98-navy);
+  background:rgba(255,255,255,.9);
+  border:1px solid var(--w98-gray-dark);
+  border-radius:2px;
+  box-shadow:2px 2px 0 rgba(0,0,0,.3);
+  cursor:pointer;
+  transition:transform .08s ease, background .1s ease, color .1s ease;
+}
+.cardHeart:hover{ transform:scale(1.12); background:#fff; }
+.cardHeart:active{ transform:scale(.95); }
+.cardHeart.active{
+  background:var(--w98-navy);
+  color:var(--w98-yellow);
+  border-color:var(--w98-dark);
+}
+.cardHeart:focus-visible{ outline:2px solid var(--w98-navy); outline-offset:1px; }
+.cardHeart:disabled{ cursor:wait; opacity:.7; }
+
 .newBadge{
   position:absolute;
   top:6px;

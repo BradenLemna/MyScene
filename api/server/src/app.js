@@ -12,6 +12,7 @@ import geocodingRoutes from './routes/geocoding.js';
 import artistRoutes from './routes/artists.js';
 import authRoutes from './routes/auth.js';
 import analyticsRoutes from './routes/analytics.js';
+import favoritesRouter from './routes/favorites.js';
 import adminRoutes from './routes/admin.js';
 
 export function createApp() {
@@ -34,6 +35,7 @@ export function createApp() {
     app.use(artistRoutes);
     app.use(authRoutes);
     app.use(analyticsRoutes);
+    app.use(favoritesRouter);
     app.use(adminRoutes);
 
     app.use(notFoundHandler);

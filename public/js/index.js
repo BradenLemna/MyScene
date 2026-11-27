@@ -1,6 +1,7 @@
 import { setUserLocation } from "./locationHandling.js";
 import * as apiCalls from "./api.js";
 import { checkApiHealth, showOfflineBanner } from "./status.js";
+import * as favorites from "./favorites.js";
 
 // ---------- helpers ----------
 
@@ -384,6 +385,7 @@ async function renderFeaturedGrid() {
             <div class="artistCard">
                 <div class="artistImgWrap">
                     <span class="newBadge">Featured</span>
+                    <button type="button" class="cardHeart" data-heart-artist="${escapeHtml(artist.artist_name)}" aria-pressed="false" aria-label="Favorite ${escapeHtml(artist.artist_name)}" title="Favorite ${escapeHtml(artist.artist_name)}">&hearts;</button>
                     ${artistImgTag(artist, "artistImg")}
                 </div>
                 <div class="artistCardBody">
@@ -395,6 +397,7 @@ async function renderFeaturedGrid() {
     `).join("");
 
     wireArtistBoxes(featuredDiv, artists);
+    favorites.wireHeartButtons(featuredDiv);
     if (filterFailed) {
         featuredDiv.insertAdjacentHTML("afterbegin",
             `<div class="emptyState">Dates filter unavailable right now &mdash; showing all featured artists.</div>`);
@@ -527,6 +530,7 @@ async function displayArtists(artists, queryName = "", genres = []) {
         <div class="artistBox" data-artist-index="${i}" tabindex="0" role="button" aria-label="View ${escapeHtml(artist.artist_name)}">
             <div class="artistCard">
                 <div class="artistImgWrap">
+                    <button type="button" class="cardHeart" data-heart-artist="${escapeHtml(artist.artist_name)}" aria-pressed="false" aria-label="Favorite ${escapeHtml(artist.artist_name)}" title="Favorite ${escapeHtml(artist.artist_name)}">&hearts;</button>
                     ${artistImgTag(artist, "artistImg")}
                 </div>
                 <div class="artistCardBody">
@@ -542,6 +546,7 @@ async function displayArtists(artists, queryName = "", genres = []) {
     `).join("");
 
     wireArtistBoxes(resultsDiv, artists);
+    favorites.wireHeartButtons(resultsDiv);
 }
 
 // Shared click/keyboard wiring for artist cards (featured + results grids).
@@ -551,6 +556,9 @@ function wireArtistBoxes(grid, artists) {
         const open = () => openArtistModal(artist);
         box.addEventListener("click", open);
         box.addEventListener("keydown", e => {
+            // Heart buttons handle their own keys (Enter/Space) — don't open
+            // the modal when the focus is on a heart.
+            if (e.target.closest("[data-heart-artist]")) return;
             if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); }
         });
     });
